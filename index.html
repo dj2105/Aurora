@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lapland Winter Expedition</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="manifest" href="manifest.json" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="trip-title">
+        <h1>Lapland Winter Expedition</h1>
+        <p>Daniel • Jaime · Jan 19–24, 2026</p>
+      </div>
+      <div class="timezone-toggle" role="group" aria-label="Time zone display">
+        <button class="toggle-btn is-active" data-zone="local">Local</button>
+        <button class="toggle-btn" data-zone="home">Home</button>
+        <button class="toggle-btn" data-zone="both">Both</button>
+      </div>
+    </header>
+
+    <nav class="timeline-bar" aria-label="Trip timeline">
+      <div class="timeline-scroll" id="timeline"></div>
+    </nav>
+
+    <main>
+      <section class="sticky-panel" aria-live="polite">
+        <div class="now-next">
+          <div>
+            <p class="eyebrow">Now</p>
+            <p class="time" id="current-time">--:--</p>
+            <p class="meta" id="current-location">Checking local time…</p>
+          </div>
+          <div>
+            <p class="eyebrow">Next</p>
+            <p class="next-title" id="next-title">Loading…</p>
+            <p class="meta" id="next-meta">--</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="alerts" id="alerts" aria-label="Alerts"></section>
+
+      <section class="quick-tools" aria-label="Quick tools">
+        <h2>Quick Tools</h2>
+        <div class="tool-grid">
+          <a class="tool" href="https://www.google.com/maps/search/?api=1&query=1409+Jokivarrentie+Tornio+Finland" target="_blank" rel="noreferrer">Base Map</a>
+          <a class="tool" href="https://www.yr.no/en/" target="_blank" rel="noreferrer">Weather</a>
+          <a class="tool" href="https://www.swpc.noaa.gov/" target="_blank" rel="noreferrer">Aurora Forecast</a>
+          <a class="tool" href="#bookings">Bookings</a>
+        </div>
+      </section>
+
+      <section class="search-section" aria-label="Search">
+        <label for="search">Search everything</label>
+        <input id="search" type="search" placeholder="Search events, bookings, maps, notes" />
+      </section>
+
+      <section id="days" class="days"></section>
+
+      <section id="bookings" class="section">
+        <div class="section-header">
+          <h2>Bookings & Documents</h2>
+          <p>Tap to call, copy refs, or open maps.</p>
+        </div>
+        <div id="bookings-grid" class="card-grid"></div>
+      </section>
+
+      <section id="maps" class="section">
+        <div class="section-header">
+          <h2>Maps Hub</h2>
+          <p>Open in Google Maps or copy addresses.</p>
+        </div>
+        <div id="maps-grid" class="card-grid"></div>
+      </section>
+
+      <section id="checklist" class="section">
+        <div class="section-header">
+          <h2>Checklist</h2>
+          <p>Saved locally on this device.</p>
+        </div>
+        <div id="checklist-sections" class="checklist"></div>
+      </section>
+
+      <section id="aurora" class="section">
+        <div class="section-header">
+          <h2>Aurora Guide</h2>
+          <p>Cloud cover comes first. If stars are visible, wait.</p>
+        </div>
+        <div class="card">
+          <h3>Strategy</h3>
+          <p>Cloud cover is the enemy. If stars are visible, wait.</p>
+          <h3>Photo Tips</h3>
+          <ul>
+            <li>Focus: Infinity (manual focus on a star)</li>
+            <li>Aperture: f/2.8 or lowest possible</li>
+            <li>ISO: 1600–3200 (start high, lower if noisy)</li>
+            <li>Shutter: 2–10 seconds (longer = trails)</li>
+            <li>Batteries: Keep spares in inside pocket</li>
+          </ul>
+          <div class="pill-row">
+            <a class="pill" href="#" aria-label="My Aurora Forecast">My Aurora Forecast</a>
+            <a class="pill" href="https://www.swpc.noaa.gov/" target="_blank" rel="noreferrer">NOAA Space Weather</a>
+          </div>
+        </div>
+      </section>
+
+      <section id="food" class="section">
+        <div class="section-header">
+          <h2>Food & Shopping</h2>
+          <p>Plan one big shop in Tornio.</p>
+        </div>
+        <div class="card">
+          <h3>One Big Shop Essentials</h3>
+          <ul>
+            <li>Breakfast: Yoghurt, oats/granola, coffee</li>
+            <li>Lunch: Soups, smoked salmon, rye bread</li>
+            <li>Dinner: Pasta, jar sauce, mince/chicken, frozen veg</li>
+            <li>Sauna snacks: Chocolate, crisps, frozen berries</li>
+          </ul>
+          <p class="note">Check Sunday/holiday opening hours before you go.</p>
+        </div>
+      </section>
+
+      <section id="emergency" class="section">
+        <div class="section-header">
+          <h2>Emergency & Practical</h2>
+        </div>
+        <div class="card">
+          <p><strong>Accommodation Address:</strong> 1409 Jokivarrentie, 95520 Tornio, Finland</p>
+          <button class="copy-btn" data-copy="1409 Jokivarrentie, 95520 Tornio, Finland">Copy Address</button>
+          <p><strong>Emergency (Finland):</strong> 112</p>
+          <p><strong>Host Phone:</strong> <a href="tel:+358406702904">+358 40 670 2904</a></p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>Offline-ready · Stored on device · Tap times for details</p>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>
