@@ -5,12 +5,23 @@ const outingGearKey = "aurora-outing-gear-v1";
 const pillsKey = "aurora-pills-v1";
 const userItemsKey = "aurora-user-items-v1";
 const LAST_UPDATED_KEY = "aurora-last-updated";
+const syncMetaKey = "aurora-sync-meta-v1";
 let displayZone = "local";
 let dayObserver;
-let outingGearState = null;
-let userItems = [];
-let pillsState = {};
 let lastPillReminderDate = null;
+let appState = {
+  outingGear: null,
+  pills: {},
+  userItems: [],
+  checklist: {},
+  updatedAt: {
+    gear: 0,
+    pills: 0,
+    checklist: 0,
+    userItems: 0,
+  },
+};
+const stateListeners = new Set();
 
 const timelineEl = document.getElementById("timeline");
 const daysEl = document.getElementById("days-list");
@@ -114,11 +125,20 @@ function safeWriteStorage(key, value) {
   }
 }
 
+function createId(prefix) {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return `${prefix}-${crypto.randomUUID()}`;
+  }
+  return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 10)}`;
+}
+
 function createDefaultOutingState() {
   return {
     items: defaultOutingGear.map((label) => ({
+      id: createId("gear"),
       label,
       checks: { daniel: false, jaime: false },
+      deleted: false,
     })),
   };
 }
@@ -135,27 +155,32 @@ function loadOutingGear() {
     if (!parsed?.items || !Array.isArray(parsed.items)) {
       throw new Error("Invalid outing gear data");
     }
-    return {
-      items: parsed.items
-        .filter((item) => typeof item?.label === "string")
-        .map((item) => ({
+    let changed = false;
+    const items = parsed.items
+      .filter((item) => typeof item?.label === "string")
+      .map((item) => {
+        if (!item?.id) changed = true;
+        if (typeof item?.deleted !== "boolean") changed = true;
+        return {
+          id: item?.id ?? createId("gear"),
           label: item.label,
           checks: {
             daniel: Boolean(item?.checks?.daniel),
             jaime: Boolean(item?.checks?.jaime),
           },
-        })),
-    };
+          deleted: Boolean(item?.deleted),
+        };
+      });
+    const cleaned = { items };
+    if (changed) {
+      safeWriteStorage(outingGearKey, JSON.stringify(cleaned));
+    }
+    return cleaned;
   } catch (error) {
     const fallback = createDefaultOutingState();
     safeWriteStorage(outingGearKey, JSON.stringify(fallback));
     return fallback;
   }
-}
-
-function saveOutingGear() {
-  if (!outingGearState) return;
-  safeWriteStorage(outingGearKey, JSON.stringify(outingGearState));
 }
 
 function loadPillsState() {
@@ -177,15 +202,11 @@ function loadPillsState() {
   }
 }
 
-function savePillsState() {
-  safeWriteStorage(pillsKey, JSON.stringify(pillsState));
-}
-
 function getPillsEntry(date) {
-  if (!pillsState[date]) {
-    pillsState[date] = { daniel: false, jaime: false };
+  if (!appState.pills[date]) {
+    appState.pills[date] = { daniel: false, jaime: false };
   }
-  return pillsState[date];
+  return appState.pills[date];
 }
 
 function loadUserItems() {
@@ -194,25 +215,113 @@ function loadUserItems() {
   try {
     const parsed = JSON.parse(stored);
     if (!Array.isArray(parsed)) return [];
-    return parsed
+    let changed = false;
+    const cleaned = parsed
       .filter((item) => item && typeof item.title === "string")
-      .map((item) => ({
-        id: item.id,
-        day: item.day ?? null,
-        time: item.time ?? null,
-        title: item.title,
-        detail: item.detail ?? "",
-        type: item.type ?? "",
-        createdAt: item.createdAt ?? Date.now(),
-      }));
+      .map((item) => {
+        if (!item?.id) changed = true;
+        if (typeof item?.deleted !== "boolean") changed = true;
+        return {
+          id: item?.id ?? createId("user"),
+          day: item.day ?? null,
+          time: item.time ?? null,
+          title: item.title,
+          detail: item.detail ?? "",
+          type: item.type ?? "",
+          createdAt: item.createdAt ?? Date.now(),
+          deleted: Boolean(item?.deleted),
+        };
+      });
+    if (changed) {
+      safeWriteStorage(userItemsKey, JSON.stringify(cleaned));
+    }
+    return cleaned;
   } catch (error) {
     return [];
   }
 }
 
-function saveUserItems() {
-  safeWriteStorage(userItemsKey, JSON.stringify(userItems));
+function loadChecklistState() {
+  try {
+    const stored = safeReadStorage(storageKey);
+    if (!stored) return {};
+    const parsed = JSON.parse(stored);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch (error) {
+    return {};
+  }
 }
+
+function loadUpdatedAt() {
+  try {
+    const stored = safeReadStorage(syncMetaKey);
+    if (!stored) {
+      return {
+        gear: 0,
+        pills: 0,
+        checklist: 0,
+        userItems: 0,
+      };
+    }
+    const parsed = JSON.parse(stored);
+    return {
+      gear: Number(parsed?.gear ?? parsed?.updatedAt?.gear ?? 0),
+      pills: Number(parsed?.pills ?? parsed?.updatedAt?.pills ?? 0),
+      checklist: Number(parsed?.checklist ?? parsed?.updatedAt?.checklist ?? 0),
+      userItems: Number(parsed?.userItems ?? parsed?.updatedAt?.userItems ?? 0),
+    };
+  } catch (error) {
+    return {
+      gear: 0,
+      pills: 0,
+      checklist: 0,
+      userItems: 0,
+    };
+  }
+}
+
+function persistState() {
+  safeWriteStorage(outingGearKey, JSON.stringify(appState.outingGear));
+  safeWriteStorage(pillsKey, JSON.stringify(appState.pills));
+  safeWriteStorage(userItemsKey, JSON.stringify(appState.userItems));
+  safeWriteStorage(storageKey, JSON.stringify(appState.checklist));
+  safeWriteStorage(syncMetaKey, JSON.stringify(appState.updatedAt));
+}
+
+function emitStateChange(payload) {
+  stateListeners.forEach((listener) => {
+    listener(payload);
+  });
+}
+
+function setState(updates, { source = "local", updatedSections = [], updatedAt = {} } = {}) {
+  const nextUpdatedAt = { ...appState.updatedAt, ...updatedAt };
+  if (source === "local") {
+    const now = Date.now();
+    updatedSections.forEach((section) => {
+      nextUpdatedAt[section] = now;
+    });
+  }
+  appState = {
+    ...appState,
+    ...updates,
+    updatedAt: nextUpdatedAt,
+  };
+  persistState();
+  applyStateToUI(updatedSections);
+  emitStateChange({ state: appState, source, updatedSections });
+}
+
+function onStateChange(listener) {
+  stateListeners.add(listener);
+  return () => stateListeners.delete(listener);
+}
+
+window.AuroraState = {
+  getState: () => appState,
+  setState,
+  onChange: onStateChange,
+};
 
 function parseTimeToMinutes(time) {
   if (!time) return null;
@@ -277,8 +386,8 @@ function getMergedEvents(day) {
     source: "base",
     order: index,
   }));
-  const userEvents = userItems
-    .filter((item) => item.day === day.date)
+  const userEvents = appState.userItems
+    .filter((item) => !item.deleted && item.day === day.date)
     .map((item) => ({
       time: item.time || null,
       title: item.title,
@@ -308,9 +417,11 @@ function getMergedEvents(day) {
 
 function renderOutingGear() {
   if (!outingGearBody) return;
+  if (!appState.outingGear) return;
   outingGearBody.innerHTML = "";
 
-  outingGearState.items.forEach((item, index) => {
+  appState.outingGear.items.forEach((item, index) => {
+    if (item.deleted) return;
     const row = document.createElement("div");
     row.className = "outing-gear__row";
     row.dataset.index = String(index);
@@ -335,10 +446,11 @@ function renderOutingGear() {
 }
 
 function updateOutingGearCounts() {
-  if (!outingGearCountDaniel || !outingGearCountJaime || !outingGearState) return;
-  const total = outingGearState.items.length;
-  const danielDone = outingGearState.items.filter((item) => item.checks.daniel).length;
-  const jaimeDone = outingGearState.items.filter((item) => item.checks.jaime).length;
+  if (!outingGearCountDaniel || !outingGearCountJaime || !appState.outingGear) return;
+  const activeItems = appState.outingGear.items.filter((item) => !item.deleted);
+  const total = activeItems.length;
+  const danielDone = activeItems.filter((item) => item.checks.daniel).length;
+  const jaimeDone = activeItems.filter((item) => item.checks.jaime).length;
   outingGearCountDaniel.textContent = `Daniel ${danielDone}/${total}`;
   outingGearCountJaime.textContent = `Jaime ${jaimeDone}/${total}`;
 }
@@ -391,7 +503,7 @@ function renderPillsIndicator() {
 function renderNotesInbox() {
   if (!notesInboxList) return;
   notesInboxList.innerHTML = "";
-  const notes = userItems.filter((item) => !item.day);
+  const notes = appState.userItems.filter((item) => !item.deleted && !item.day);
   if (!notes.length) {
     const empty = document.createElement("p");
     empty.className = "notes-inbox__empty";
@@ -642,7 +754,7 @@ function renderMaps() {
 
 function renderChecklist() {
   if (!checklistSections) return;
-  const saved = JSON.parse(safeReadStorage(storageKey) ?? "{}");
+  const saved = appState.checklist ?? {};
   checklistSections.innerHTML = "";
 
   checklist.forEach((section, sectionIndex) => {
@@ -660,8 +772,9 @@ function renderChecklist() {
 
     const updateProgress = () => {
       const total = section.items.length;
+      const currentSaved = appState.checklist ?? {};
       const done = section.items.reduce((count, item, itemIndex) => {
-        const checked = saved?.[sectionIndex]?.[itemIndex] ?? item.checked;
+        const checked = currentSaved?.[sectionIndex]?.[itemIndex] ?? item.checked;
         return count + (checked ? 1 : 0);
       }, 0);
       progress.textContent = `${done}/${total} done`;
@@ -677,10 +790,10 @@ function renderChecklist() {
       checkbox.checked = saved?.[sectionIndex]?.[itemIndex] ?? item.checked;
 
       checkbox.addEventListener("change", () => {
-        if (!saved[sectionIndex]) saved[sectionIndex] = {};
-        saved[sectionIndex][itemIndex] = checkbox.checked;
-        safeWriteStorage(storageKey, JSON.stringify(saved));
-        updateProgress();
+        const nextSaved = { ...saved };
+        if (!nextSaved[sectionIndex]) nextSaved[sectionIndex] = {};
+        nextSaved[sectionIndex][itemIndex] = checkbox.checked;
+        setState({ checklist: nextSaved }, { updatedSections: ["checklist"] });
       });
 
       const text = document.createElement("span");
@@ -709,7 +822,6 @@ function populateDaySelect() {
 function setupOutingGear() {
   const gearSection = document.getElementById("outing-gear");
   if (!gearSection) return;
-  outingGearState = loadOutingGear();
   renderOutingGear();
 
   gearSection.addEventListener("click", (event) => {
@@ -721,24 +833,24 @@ function setupOutingGear() {
 
     if (togglePerson) {
       const index = Number(target.dataset.index);
-      const item = outingGearState.items[index];
+      const item = appState.outingGear.items[index];
       if (!item) return;
       item.checks[togglePerson] = !item.checks[togglePerson];
-      saveOutingGear();
-      renderOutingGear();
+      setState({ outingGear: { ...appState.outingGear } }, { updatedSections: ["gear"] });
       return;
     }
 
     if (removeIndex !== undefined) {
       const index = Number(removeIndex);
-      outingGearState.items.splice(index, 1);
-      saveOutingGear();
-      renderOutingGear();
+      const item = appState.outingGear.items[index];
+      if (item) item.deleted = true;
+      setState({ outingGear: { ...appState.outingGear } }, { updatedSections: ["gear"] });
       return;
     }
 
     if (resetTarget) {
-      outingGearState.items.forEach((item) => {
+      appState.outingGear.items.forEach((item) => {
+        if (item.deleted) return;
         if (resetTarget === "all") {
           item.checks.daniel = false;
           item.checks.jaime = false;
@@ -748,8 +860,7 @@ function setupOutingGear() {
           item.checks.jaime = false;
         }
       });
-      saveOutingGear();
-      renderOutingGear();
+      setState({ outingGear: { ...appState.outingGear } }, { updatedSections: ["gear"] });
     }
   });
 
@@ -761,14 +872,36 @@ function setupOutingGear() {
         showActionToast("Add a gear item first.");
         return;
       }
-      outingGearState.items.push({
+      appState.outingGear.items.push({
+        id: createId("gear"),
         label,
         checks: { daniel: false, jaime: false },
+        deleted: false,
       });
       outingGearInput.value = "";
-      saveOutingGear();
-      renderOutingGear();
+      setState({ outingGear: { ...appState.outingGear } }, { updatedSections: ["gear"] });
     });
+  }
+}
+
+function applyStateToUI(updatedSections = []) {
+  if (!updatedSections.length) return;
+  if (updatedSections.includes("gear")) {
+    renderOutingGear();
+  }
+  if (updatedSections.includes("pills")) {
+    renderDays();
+    setupDayNav();
+    updateNowNext();
+  }
+  if (updatedSections.includes("userItems")) {
+    renderDays();
+    renderNotesInbox();
+    setupDayNav();
+    updateNowNext();
+  }
+  if (updatedSections.includes("checklist")) {
+    renderChecklist();
   }
 }
 
@@ -783,26 +916,19 @@ function setupPills() {
     if (pillToggle && pillDate) {
       const entry = getPillsEntry(pillDate);
       entry[pillToggle] = !entry[pillToggle];
-      pillsState[pillDate] = entry;
-      savePillsState();
-      target.classList.toggle("is-active", entry[pillToggle]);
-      target.setAttribute("aria-pressed", String(entry[pillToggle]));
-      if (pillDate === getDateString("Europe/Helsinki")) {
-        renderPillsIndicator();
-      }
+      appState.pills[pillDate] = entry;
+      setState({ pills: { ...appState.pills } }, { updatedSections: ["pills"] });
       return;
     }
 
     if (pillReset) {
       const today = getDateString("Europe/Helsinki");
       if (pillReset === "today") {
-        pillsState[today] = { daniel: false, jaime: false };
+        appState.pills[today] = { daniel: false, jaime: false };
       } else if (pillReset === "all") {
-        pillsState = {};
+        appState.pills = {};
       }
-      savePillsState();
-      renderDays();
-      renderPillsIndicator();
+      setState({ pills: { ...appState.pills } }, { updatedSections: ["pills"] });
     }
   });
 }
@@ -835,21 +961,18 @@ function setupAddItemForm() {
     const typeValue = addItemType?.value || "";
 
     const newItem = {
-      id: `user-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+      id: createId("user"),
       day: dayValue || null,
       time: dayValue ? timeValue : null,
       title,
       detail: detailValue,
       type: typeValue,
       createdAt: Date.now(),
+      deleted: false,
     };
 
-    userItems.push(newItem);
-    saveUserItems();
-    renderDays();
-    renderNotesInbox();
-    updateNowNext();
-    renderTodayCard();
+    appState.userItems.push(newItem);
+    setState({ userItems: [...appState.userItems] }, { updatedSections: ["userItems"] });
     addItemForm.reset();
     showActionToast(dayValue ? "Added to day plan." : "Added to notes inbox.");
   });
@@ -861,14 +984,10 @@ function setupUserItemRemoval() {
     if (!(target instanceof HTMLElement)) return;
     const removeId = target.dataset.userRemove;
     if (!removeId) return;
-    const nextItems = userItems.filter((item) => item.id !== removeId);
-    if (nextItems.length === userItems.length) return;
-    userItems = nextItems;
-    saveUserItems();
-    renderDays();
-    renderNotesInbox();
-    updateNowNext();
-    renderTodayCard();
+    const item = appState.userItems.find((entry) => entry.id === removeId);
+    if (!item) return;
+    item.deleted = true;
+    setState({ userItems: [...appState.userItems] }, { updatedSections: ["userItems"] });
   });
 }
 
@@ -995,7 +1114,7 @@ function buildChecklistExport(saved) {
 function setupChecklistExportImport() {
   if (exportChecklistButton) {
     exportChecklistButton.addEventListener("click", () => {
-      const saved = JSON.parse(safeReadStorage(storageKey) ?? "{}");
+      const saved = appState.checklist ?? {};
       const payload = {
         exportedAt: new Date().toISOString(),
         checklist: buildChecklistExport(saved),
@@ -1035,8 +1154,7 @@ function setupChecklistExportImport() {
             }
           });
         });
-        safeWriteStorage(storageKey, JSON.stringify(saved));
-        renderChecklist();
+        setState({ checklist: saved }, { updatedSections: ["checklist"] });
         showActionToast("Checklist imported.");
       } catch (error) {
         showActionToast("Unable to import checklist.");
@@ -1153,8 +1271,13 @@ function setupDayNav() {
 
 function init() {
   safeWriteStorage(LAST_UPDATED_KEY, String(Date.now()));
-  userItems = loadUserItems();
-  pillsState = loadPillsState();
+  appState = {
+    outingGear: loadOutingGear(),
+    pills: loadPillsState(),
+    userItems: loadUserItems(),
+    checklist: loadChecklistState(),
+    updatedAt: loadUpdatedAt(),
+  };
   renderTimeline();
   renderDays();
   renderTodayCard();
@@ -1178,6 +1301,8 @@ function init() {
   updateStickyOffset();
   setupBackToTop();
   handleHashChange();
+  window.AuroraState.ready = true;
+  window.dispatchEvent(new CustomEvent("aurora-state-ready"));
   window.addEventListener("hashchange", handleHashChange);
   window.addEventListener("resize", updateStickyOffset);
   setInterval(updateNowNext, 60000);

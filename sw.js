@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v3";
+const CACHE_VERSION = "v4";
 const APP_CACHE = `aurora-app-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `aurora-runtime-${CACHE_VERSION}`;
 const BASE_PATH = new URL(self.registration.scope).pathname.replace(/\/?$/, "/");
@@ -9,10 +9,13 @@ const APP_SHELL = [
   `${BASE_PATH}offline.html`,
   `${BASE_PATH}styles.css`,
   `${BASE_PATH}print.css`,
+  `${BASE_PATH}firebase-config.js`,
   `${BASE_PATH}app.js`,
   `${BASE_PATH}manifest.json`,
   `${BASE_PATH}assets/css/aurora-dashboard.css`,
   `${BASE_PATH}assets/js/aurora-dashboard.js`,
+  `${BASE_PATH}assets/js/firebase.js`,
+  `${BASE_PATH}assets/js/sync.js`,
   `${BASE_PATH}assets/js/trip-hud.js`,
   `${BASE_PATH}assets/js/pwa.js`,
   `${BASE_PATH}assets/js/data-utils.js`,
