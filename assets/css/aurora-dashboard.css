@@ -1,10 +1,52 @@
-﻿  --dashboard-bg: var(--surface);
-  --dashboard-border: var(--border);
-  --dashboard-text: var(--text);
-  --dashboard-muted: var(--text-muted);
-  --dashboard-accent: var(--accent-strong);
-  --dashboard-accent-soft: var(--surface-soft);
-  --dashboard-shadow: var(--shadow-md);
-  background: var(--surface-strong);
-  background: var(--surface-strong);
-  background: var(--surface-soft);
+.live-dashboard {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.dashboard-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+.dashboard-card {
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  display: grid;
+  gap: 0.35rem;
+}
+
+.dashboard-card h3 {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.dashboard-card p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.dashboard-score {
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.dashboard-score[data-tier="good"],
+.dashboard-score[data-tier="excellent"] {
+  color: var(--accent);
+}
+
+.dashboard-hours {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.dashboard-hours span {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}

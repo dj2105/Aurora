@@ -71,7 +71,7 @@
     if (readDismissed() || isStandalone()) return;
 
     if (isIos()) {
-      showToast("Install: Share â†’ Add to Home Screen", [
+      showToast("Install: Share → Add to Home Screen", [
         {
           label: "Dismiss",
           onClick: () => {
@@ -110,7 +110,7 @@
 
   function setupOfflineHandling() {
     window.addEventListener("offline", () => {
-      showOfflineToast("Offline â€” showing cached content");
+      showOfflineToast("Offline — showing cached content");
     });
     window.addEventListener("online", () => {
       showOfflineToast("Back online");
