@@ -4,21 +4,26 @@ const storageKey = "aurora-checklist";
 const outingGearKey = "aurora-outing-gear-v1";
 const pillsKey = "aurora-pills-v1";
 const userItemsKey = "aurora-user-items-v1";
+const copyPhrasesKey = "aurora-copy-phrases-v1";
 const LAST_UPDATED_KEY = "aurora-last-updated";
 const syncMetaKey = "aurora-sync-meta-v1";
-let displayZone = "local";
+let displayZone = "transport";
 let dayObserver;
 let lastPillReminderDate = null;
+let copyPhraseFilter = { search: "", category: "all" };
+let editingCopyPhraseId = null;
 let appState = {
   outingGear: null,
   pills: {},
   userItems: [],
+  copyPhrases: { items: [] },
   checklist: {},
   updatedAt: {
     gear: 0,
     pills: 0,
     checklist: 0,
     userItems: 0,
+    copyPhrases: 0,
   },
 };
 const stateListeners = new Set();
@@ -31,16 +36,9 @@ const mapsGrid = document.getElementById("maps-grid");
 const checklistSections = document.getElementById("checklist-sections");
 const searchInput = document.getElementById("search");
 
-const nowTimeEl = document.getElementById("current-time");
 const nowLocationEl = document.getElementById("current-location");
 const nextTitleEl = document.getElementById("next-title");
 const nextMetaEl = document.getElementById("next-meta");
-const todayDateEl = document.getElementById("today-date");
-const todayLocationEl = document.getElementById("today-location");
-const todayEventsEl = document.getElementById("today-events");
-const todayJumpButton = document.getElementById("today-jump");
-const todayMapLink = document.getElementById("today-map");
-const todaySupermarketLink = document.getElementById("today-supermarket");
 const shareButton = document.getElementById("share-trip");
 const printButton = document.getElementById("print-trip");
 const exportChecklistButton = document.getElementById("export-checklist");
@@ -63,6 +61,17 @@ const notesInboxList = document.getElementById("notes-inbox-list");
 const keyInfoContent = document.getElementById("key-info-content");
 const pillsTodayDate = document.getElementById("pills-today-date");
 const pillsTodayStatus = document.getElementById("pills-today-status");
+const timeDisplaySelect = document.getElementById("time-display");
+const copyPhrasesBody = document.getElementById("copy-phrases-body");
+const copyPhrasesForm = document.getElementById("copy-phrases-form");
+const copyPhrasesCategory = document.getElementById("copy-phrases-category");
+const copyPhrasesLabel = document.getElementById("copy-phrases-label");
+const copyPhrasesText = document.getElementById("copy-phrases-text");
+const copyPhrasesUrl = document.getElementById("copy-phrases-url");
+const copyPhrasesSubmit = document.getElementById("copy-phrases-submit");
+const copyPhrasesCancel = document.getElementById("copy-phrases-cancel");
+const copyPhrasesSearch = document.getElementById("copy-phrases-search");
+const copyPhrasesFilter = document.getElementById("copy-phrases-filter");
 
 const defaultOutingGear = [
   "Gloves",
@@ -109,6 +118,64 @@ const keyInfo = {
   ],
 };
 
+const defaultCopyPhrases = [
+  {
+    id: "phrase-accommodation",
+    category: "places",
+    label: "Accommodation address",
+    text: "1409 Jokivarrentie, 95520 Tornio, Finland",
+    url: "https://www.google.com/maps/search/?api=1&query=1409+Jokivarrentie+Tornio+Finland",
+    source: "seed",
+    updatedAt: 0,
+    deleted: false,
+  },
+  {
+    id: "phrase-kcitymarket",
+    category: "shops",
+    label: "K-Citymarket Tornio",
+    text: "K-Citymarket Tornio",
+    url: "https://www.google.com/maps/search/?api=1&query=K-Citymarket+Tornio",
+    source: "seed",
+    updatedAt: 0,
+    deleted: false,
+  },
+  {
+    id: "phrase-train-outbound",
+    category: "transport",
+    label: "Train: RVN → Kemi → Tornio-Itäinen",
+    text: "05:15 RVN · 07:38 Kemi · 08:21 Tornio-Itäinen (Coach 2, Seats 23A/23B)",
+    source: "seed",
+    updatedAt: 0,
+    deleted: false,
+  },
+  {
+    id: "phrase-train-return",
+    category: "transport",
+    label: "Train: Kemi → Rovaniemi",
+    text: "10:11 Kemi · 12:52 Rovaniemi (Coach 3, Seats 12A/12B)",
+    source: "seed",
+    updatedAt: 0,
+    deleted: false,
+  },
+  {
+    id: "phrase-emergency-112",
+    category: "essentials",
+    label: "Emergency 112",
+    text: "Dial 112 for urgent assistance in Finland.",
+    source: "seed",
+    updatedAt: 0,
+    deleted: false,
+  },
+];
+
+const copyPhraseCategoryLabels = {
+  places: "Places",
+  transport: "Transport",
+  shops: "Shops",
+  essentials: "Essentials",
+  custom: "Custom",
+};
+
 function safeReadStorage(key) {
   try {
     return localStorage.getItem(key);
@@ -130,6 +197,43 @@ function createId(prefix) {
     return `${prefix}-${crypto.randomUUID()}`;
   }
   return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 10)}`;
+}
+
+function normalizeCopyPhrase(item) {
+  if (!item || typeof item !== "object") return null;
+  if (!item.id || typeof item.label !== "string" || typeof item.text !== "string") return null;
+  return {
+    id: item.id,
+    category: item.category ?? "custom",
+    label: item.label,
+    text: item.text,
+    url: item.url ?? "",
+    source: item.source ?? "user",
+    updatedAt: Number(item.updatedAt ?? 0),
+    deleted: Boolean(item.deleted),
+  };
+}
+
+function mergeCopyPhrases(primary, secondary, preferSecondaryOnTie = true) {
+  const map = new Map();
+  const addItem = (item, isSecondary) => {
+    if (!item?.id) return;
+    const existing = map.get(item.id);
+    if (!existing) {
+      map.set(item.id, item);
+      return;
+    }
+    const existingUpdated = Number(existing.updatedAt ?? 0);
+    const nextUpdated = Number(item.updatedAt ?? 0);
+    if (nextUpdated > existingUpdated) {
+      map.set(item.id, item);
+    } else if (nextUpdated === existingUpdated && isSecondary && preferSecondaryOnTie) {
+      map.set(item.id, item);
+    }
+  };
+  primary.forEach((item) => addItem(item, false));
+  secondary.forEach((item) => addItem(item, true));
+  return Array.from(map.values());
 }
 
 function createDefaultOutingState() {
@@ -202,6 +306,22 @@ function loadPillsState() {
   }
 }
 
+function loadCopyPhrases() {
+  const stored = safeReadStorage(copyPhrasesKey);
+  if (!stored) {
+    return { items: [...defaultCopyPhrases] };
+  }
+  try {
+    const parsed = JSON.parse(stored);
+    const list = Array.isArray(parsed?.items) ? parsed.items : Array.isArray(parsed) ? parsed : [];
+    const cleaned = list.map(normalizeCopyPhrase).filter(Boolean);
+    const merged = mergeCopyPhrases(defaultCopyPhrases, cleaned, true);
+    return { items: merged };
+  } catch (error) {
+    return { items: [...defaultCopyPhrases] };
+  }
+}
+
 function getPillsEntry(date) {
   if (!appState.pills[date]) {
     appState.pills[date] = { daniel: false, jaime: false };
@@ -261,6 +381,7 @@ function loadUpdatedAt() {
         pills: 0,
         checklist: 0,
         userItems: 0,
+        copyPhrases: 0,
       };
     }
     const parsed = JSON.parse(stored);
@@ -269,6 +390,7 @@ function loadUpdatedAt() {
       pills: Number(parsed?.pills ?? parsed?.updatedAt?.pills ?? 0),
       checklist: Number(parsed?.checklist ?? parsed?.updatedAt?.checklist ?? 0),
       userItems: Number(parsed?.userItems ?? parsed?.updatedAt?.userItems ?? 0),
+      copyPhrases: Number(parsed?.copyPhrases ?? parsed?.updatedAt?.copyPhrases ?? 0),
     };
   } catch (error) {
     return {
@@ -276,6 +398,7 @@ function loadUpdatedAt() {
       pills: 0,
       checklist: 0,
       userItems: 0,
+      copyPhrases: 0,
     };
   }
 }
@@ -284,6 +407,7 @@ function persistState() {
   safeWriteStorage(outingGearKey, JSON.stringify(appState.outingGear));
   safeWriteStorage(pillsKey, JSON.stringify(appState.pills));
   safeWriteStorage(userItemsKey, JSON.stringify(appState.userItems));
+  safeWriteStorage(copyPhrasesKey, JSON.stringify(appState.copyPhrases));
   safeWriteStorage(storageKey, JSON.stringify(appState.checklist));
   safeWriteStorage(syncMetaKey, JSON.stringify(appState.updatedAt));
 }
@@ -353,13 +477,19 @@ function getDateString(timeZone) {
 
 function formatEventTime(event) {
   if (!event?.time) return "";
-  if (displayZone === "home") {
-    return event.home_time ? `${event.home_time} Home` : "\u2014";
+  if (displayZone === "ireland") {
+    return event.home_time ? `${event.home_time} Ireland` : "\u2014";
   }
   if (displayZone === "both") {
-    return `${event.time} Local${event.home_time ? `\n${event.home_time} Home` : ""}`;
+    return `${event.time} Finland${event.home_time ? `\n${event.home_time} Ireland` : ""}`;
   }
-  return `${event.time} Local`;
+  if (displayZone === "transport") {
+    if (event.type === "transport") {
+      return `${event.time} Finland${event.home_time ? `\n${event.home_time} Ireland` : ""}`;
+    }
+    return `${event.time} Finland`;
+  }
+  return `${event.time} Finland`;
 }
 
 function renderTimeline() {
@@ -649,7 +779,7 @@ function buildDayJumpNav(section) {
 
   const globalTargets = [
     { id: "checklist", label: "Checklist" },
-    { id: "emergency", label: "Emergency" },
+    { id: "copy-phrases", label: "Copy phrases" },
   ].filter((item) => document.getElementById(item.id));
 
   const allTargets = [...targets, ...globalTargets];
@@ -668,10 +798,8 @@ function buildDayJumpNav(section) {
 }
 
 function updateNowNext() {
-  if (!nowTimeEl || !nowLocationEl || !nextTitleEl || !nextMetaEl) return;
+  if (!nowLocationEl || !nextTitleEl || !nextMetaEl) return;
   const { hour, minute } = getTimeParts("Europe/Helsinki");
-  nowTimeEl.textContent = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
-
   const today = getDateString("Europe/Helsinki");
   const todayDay = days.find((day) => day.date === today) ?? days[0];
   nowLocationEl.textContent = todayDay?.location ?? "";
@@ -707,7 +835,6 @@ function updateNowNext() {
     nextMetaEl.textContent = "";
   }
 
-  renderTodayCard();
   renderPillsIndicator();
   maybeSendPillReminder();
 }
@@ -749,6 +876,95 @@ function renderMaps() {
       <span>Open in Maps</span>
     `;
     mapsGrid.appendChild(card);
+  });
+}
+
+function getCopyPhraseMatches(item) {
+  const search = copyPhraseFilter.search.trim().toLowerCase();
+  const category = copyPhraseFilter.category;
+  const matchesCategory = category === "all" || item.category === category;
+  if (!matchesCategory) return false;
+  if (!search) return true;
+  const haystack = `${item.label} ${item.text} ${item.category}`.toLowerCase();
+  return haystack.includes(search);
+}
+
+function renderCopyPhrases() {
+  if (!copyPhrasesBody) return;
+  const items = (appState.copyPhrases?.items ?? [])
+    .filter((item) => !item.deleted)
+    .filter(getCopyPhraseMatches);
+
+  copyPhrasesBody.innerHTML = "";
+
+  if (!items.length) {
+    const emptyRow = document.createElement("div");
+    emptyRow.className = "copy-phrases__row copy-phrases__row--empty";
+    emptyRow.textContent = "No phrases match this filter.";
+    copyPhrasesBody.appendChild(emptyRow);
+    return;
+  }
+
+  items.forEach((item) => {
+    const categoryLabel = copyPhraseCategoryLabels[item.category] ?? "Custom";
+    const row = document.createElement("div");
+    row.className = "copy-phrases__row";
+    row.dataset.phraseId = item.id;
+    const labelWrap = document.createElement("div");
+    const label = document.createElement("p");
+    label.className = "copy-phrases__label";
+    label.textContent = item.label;
+    const category = document.createElement("p");
+    category.className = "copy-phrases__category";
+    category.textContent = categoryLabel;
+    labelWrap.appendChild(label);
+    labelWrap.appendChild(category);
+
+    const textWrap = document.createElement("div");
+    const text = document.createElement("p");
+    text.className = "copy-phrases__text";
+    text.textContent = item.text;
+    textWrap.appendChild(text);
+
+    const actions = document.createElement("div");
+    actions.className = "copy-phrases__actions";
+    const copyButton = document.createElement("button");
+    copyButton.className = "pill pill--small";
+    copyButton.type = "button";
+    copyButton.dataset.copyPhrase = item.id;
+    copyButton.textContent = "Copy";
+    actions.appendChild(copyButton);
+
+    if (item.url) {
+      const openLink = document.createElement("a");
+      openLink.className = "pill pill--small";
+      openLink.href = item.url;
+      openLink.target = "_blank";
+      openLink.rel = "noreferrer";
+      openLink.textContent = "Open";
+      actions.appendChild(openLink);
+    }
+
+    if (item.source === "user") {
+      const editButton = document.createElement("button");
+      editButton.className = "pill pill--small";
+      editButton.type = "button";
+      editButton.dataset.editPhrase = item.id;
+      editButton.textContent = "Edit";
+      actions.appendChild(editButton);
+
+      const deleteButton = document.createElement("button");
+      deleteButton.className = "pill pill--small";
+      deleteButton.type = "button";
+      deleteButton.dataset.deletePhrase = item.id;
+      deleteButton.textContent = "Delete";
+      actions.appendChild(deleteButton);
+    }
+
+    row.appendChild(labelWrap);
+    row.appendChild(textWrap);
+    row.appendChild(actions);
+    copyPhrasesBody.appendChild(row);
   });
 }
 
@@ -900,6 +1116,9 @@ function applyStateToUI(updatedSections = []) {
     setupDayNav();
     updateNowNext();
   }
+  if (updatedSections.includes("copyPhrases")) {
+    renderCopyPhrases();
+  }
   if (updatedSections.includes("checklist")) {
     renderChecklist();
   }
@@ -1013,81 +1232,151 @@ function setupSearch() {
   });
 }
 
-function setupZoneToggle() {
-  const buttons = document.querySelectorAll(".zone-toggle__button");
-  buttons.forEach((button) => {
-    button.addEventListener("click", () => {
-      displayZone = button.dataset.zone ?? "local";
-      buttons.forEach((btn) => btn.classList.toggle("is-active", btn === button));
-      renderDays();
-      setupDayNav();
-      updateNowNext();
-    });
-  });
-}
-
-function renderTodayCard() {
-  if (!todayDateEl || !todayLocationEl || !todayEventsEl) return;
-  const today = getDateString("Europe/Helsinki");
-  const todayDay = days.find((day) => day.date === today) ?? days[0];
-  const { hour, minute } = getTimeParts("Europe/Helsinki");
-  const nowMinutes = hour * 60 + minute;
-
-  todayDateEl.textContent = todayDay.date;
-  todayLocationEl.textContent = todayDay.location;
-  todayEventsEl.innerHTML = "";
-
-  const upcomingEvents = [];
-  days.forEach((day) => {
-    if (day.date < today) return;
-    getMergedEvents(day).forEach((event) => {
-      if (!event.time) return;
-      const eventMinutes = parseTimeToMinutes(event.time) ?? 0;
-      if (day.date === today && eventMinutes < nowMinutes) return;
-      upcomingEvents.push({ day, event });
-    });
-  });
-
-  const unscheduledToday = getMergedEvents(todayDay).filter((event) => !event.time);
-
-  if (!upcomingEvents.length && !unscheduledToday.length) {
-    const item = document.createElement("li");
-    item.textContent = "No more events scheduled.";
-    todayEventsEl.appendChild(item);
+async function copyToClipboard(text) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
     return;
   }
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.style.position = "fixed";
+  textarea.style.top = "-1000px";
+  document.body.appendChild(textarea);
+  textarea.focus();
+  textarea.select();
+  document.execCommand("copy");
+  textarea.remove();
+}
 
-  upcomingEvents.slice(0, 3).forEach(({ day, event }) => {
-    const item = document.createElement("li");
-    item.textContent = `${event.time} \u00B7 ${event.title} (${day.location})`;
-    todayEventsEl.appendChild(item);
+function resetCopyPhraseForm() {
+  editingCopyPhraseId = null;
+  if (copyPhrasesForm) copyPhrasesForm.reset();
+  if (copyPhrasesSubmit) copyPhrasesSubmit.textContent = "Add phrase";
+  if (copyPhrasesCancel) copyPhrasesCancel.hidden = true;
+}
+
+function setupCopyPhrases() {
+  if (!copyPhrasesForm || !copyPhrasesBody) return;
+  renderCopyPhrases();
+
+  copyPhrasesForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const label = copyPhrasesLabel?.value.trim() ?? "";
+    const text = copyPhrasesText?.value.trim() ?? "";
+    const category = copyPhrasesCategory?.value ?? "custom";
+    const url = copyPhrasesUrl?.value.trim() ?? "";
+
+    if (!label || !text) {
+      showActionToast("Add both a label and text.");
+      return;
+    }
+
+    const items = appState.copyPhrases?.items ?? [];
+    if (editingCopyPhraseId) {
+      const phrase = items.find((item) => item.id === editingCopyPhraseId);
+      if (!phrase || phrase.source !== "user") {
+        showActionToast("Only custom phrases can be edited.");
+        resetCopyPhraseForm();
+        return;
+      }
+      phrase.label = label;
+      phrase.text = text;
+      phrase.category = category;
+      phrase.url = url;
+      phrase.updatedAt = Date.now();
+      setState({ copyPhrases: { items: [...items] } }, { updatedSections: ["copyPhrases"] });
+      resetCopyPhraseForm();
+      showActionToast("Phrase updated.");
+      return;
+    }
+
+    items.push({
+      id: createId("phrase"),
+      category,
+      label,
+      text,
+      url,
+      source: "user",
+      updatedAt: Date.now(),
+      deleted: false,
+    });
+    setState({ copyPhrases: { items: [...items] } }, { updatedSections: ["copyPhrases"] });
+    resetCopyPhraseForm();
+    showActionToast("Phrase added.");
   });
 
-  if (!upcomingEvents.length && unscheduledToday.length) {
-    unscheduledToday.slice(0, 2).forEach((event) => {
-      const item = document.createElement("li");
-      item.textContent = `Any time \u00B7 ${event.title} (${todayDay.location})`;
-      todayEventsEl.appendChild(item);
+  if (copyPhrasesCancel) {
+    copyPhrasesCancel.addEventListener("click", () => resetCopyPhraseForm());
+  }
+
+  copyPhrasesBody.addEventListener("click", async (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    const copyId = target.dataset.copyPhrase;
+    const editId = target.dataset.editPhrase;
+    const deleteId = target.dataset.deletePhrase;
+    const items = appState.copyPhrases?.items ?? [];
+
+    if (copyId) {
+      const phrase = items.find((item) => item.id === copyId);
+      if (!phrase) return;
+      try {
+        await copyToClipboard(phrase.text);
+        showActionToast("Copied.");
+      } catch (error) {
+        showActionToast("Copy failed.");
+      }
+      return;
+    }
+
+    if (editId) {
+      const phrase = items.find((item) => item.id === editId);
+      if (!phrase || phrase.source !== "user") return;
+      editingCopyPhraseId = editId;
+      if (copyPhrasesCategory) copyPhrasesCategory.value = phrase.category;
+      if (copyPhrasesLabel) copyPhrasesLabel.value = phrase.label;
+      if (copyPhrasesText) copyPhrasesText.value = phrase.text;
+      if (copyPhrasesUrl) copyPhrasesUrl.value = phrase.url ?? "";
+      if (copyPhrasesSubmit) copyPhrasesSubmit.textContent = "Save changes";
+      if (copyPhrasesCancel) copyPhrasesCancel.hidden = false;
+      return;
+    }
+
+    if (deleteId) {
+      const phrase = items.find((item) => item.id === deleteId);
+      if (!phrase || phrase.source !== "user") return;
+      phrase.deleted = true;
+      phrase.updatedAt = Date.now();
+      setState({ copyPhrases: { items: [...items] } }, { updatedSections: ["copyPhrases"] });
+      if (editingCopyPhraseId === deleteId) resetCopyPhraseForm();
+      showActionToast("Phrase removed.");
+    }
+  });
+
+  if (copyPhrasesSearch) {
+    copyPhrasesSearch.addEventListener("input", (event) => {
+      copyPhraseFilter.search = event.target.value;
+      renderCopyPhrases();
+    });
+  }
+
+  if (copyPhrasesFilter) {
+    copyPhrasesFilter.addEventListener("change", (event) => {
+      copyPhraseFilter.category = event.target.value;
+      renderCopyPhrases();
     });
   }
 }
 
-function setupTodayActions() {
-  const hud = document.getElementById("trip-hud");
-  if (hud) {
-    if (todayMapLink) todayMapLink.href = hud.dataset.baseMap ?? "#";
-    if (todaySupermarketLink) {
-      todaySupermarketLink.href = hud.dataset.supermarketMap ?? "#";
-    }
-  }
-  if (todayJumpButton) {
-    todayJumpButton.addEventListener("click", () => {
-      const today = days.find((day) => getDateString(day.timeZone) === day.date);
-      if (today) {
-        scrollToTarget(`day-${today.date}`);
-      }
-    });
-  }
+function setupZoneToggle() {
+  if (!timeDisplaySelect) return;
+  timeDisplaySelect.value = displayZone;
+  timeDisplaySelect.addEventListener("change", () => {
+    displayZone = timeDisplaySelect.value;
+    renderDays();
+    setupDayNav();
+    updateNowNext();
+  });
 }
 
 function showActionToast(message, { timeout = 3000 } = {}) {
@@ -1275,14 +1564,15 @@ function init() {
     outingGear: loadOutingGear(),
     pills: loadPillsState(),
     userItems: loadUserItems(),
+    copyPhrases: loadCopyPhrases(),
     checklist: loadChecklistState(),
     updatedAt: loadUpdatedAt(),
   };
   renderTimeline();
   renderDays();
-  renderTodayCard();
   renderBookings();
   renderMaps();
+  renderCopyPhrases();
   renderChecklist();
   renderKeyInfo();
   renderPillsIndicator();
@@ -1292,8 +1582,8 @@ function init() {
   setupPills();
   setupAddItemForm();
   setupUserItemRemoval();
-  setupTodayActions();
   setupSearch();
+  setupCopyPhrases();
   setupZoneToggle();
   updateNowNext();
   setupShareAndPrint();

@@ -145,6 +145,28 @@ function mergeItems(primary, secondary) {
   return Array.from(map.values());
 }
 
+function mergeCopyPhraseItems(primary, secondary) {
+  const map = new Map();
+  const addItem = (item, isSecondary) => {
+    if (!item?.id) return;
+    const existing = map.get(item.id);
+    if (!existing) {
+      map.set(item.id, item);
+      return;
+    }
+    const existingUpdated = Number(existing.updatedAt ?? 0);
+    const nextUpdated = Number(item.updatedAt ?? 0);
+    if (nextUpdated > existingUpdated) {
+      map.set(item.id, item);
+    } else if (nextUpdated === existingUpdated && isSecondary) {
+      map.set(item.id, item);
+    }
+  };
+  primary.forEach((item) => addItem(item, false));
+  secondary.forEach((item) => addItem(item, true));
+  return Array.from(map.values());
+}
+
 function timestampToMillis(value) {
   if (!value) return 0;
   if (typeof value.toMillis === "function") {
@@ -210,6 +232,13 @@ function buildRemotePayload(sections) {
     };
   }
 
+  if (sections.includes("copyPhrases")) {
+    payload.copyPhrases = {
+      items: state.copyPhrases?.items ?? [],
+      updatedAt: serverTimestamp(),
+    };
+  }
+
   payload.updatedAt = serverTimestamp();
   return payload;
 }
@@ -264,6 +293,7 @@ function applyRemoteState(remote) {
   const remotePillsUpdated = timestampToMillis(remote?.pills?.updatedAt ?? remote?.updatedAt);
   const remoteUserItemsUpdated = timestampToMillis(remote?.userItems?.updatedAt ?? remote?.updatedAt);
   const remoteChecklistUpdated = timestampToMillis(remote?.checklist?.updatedAt ?? remote?.updatedAt);
+  const remoteCopyPhrasesUpdated = timestampToMillis(remote?.copyPhrases?.updatedAt ?? remote?.updatedAt);
 
   if (remoteGearUpdated > (state.updatedAt?.gear ?? 0)) {
     const remoteItems = Array.isArray(remote?.gear?.items) ? remote.gear.items : [];
@@ -309,6 +339,20 @@ function applyRemoteState(remote) {
     pendingLocalSections.push("checklist");
   }
 
+  if (remoteCopyPhrasesUpdated > (state.updatedAt?.copyPhrases ?? 0)) {
+    const remoteItems = Array.isArray(remote?.copyPhrases?.items) ? remote.copyPhrases.items : [];
+    const localItems = state.copyPhrases?.items ?? [];
+    updates.copyPhrases = { items: mergeCopyPhraseItems(remoteItems, localItems) };
+    updatedAt.copyPhrases = remoteCopyPhrasesUpdated;
+    updatedSections.push("copyPhrases");
+  } else if (
+    state.updatedAt?.copyPhrases &&
+    remoteCopyPhrasesUpdated &&
+    state.updatedAt.copyPhrases > remoteCopyPhrasesUpdated
+  ) {
+    pendingLocalSections.push("copyPhrases");
+  }
+
   if (updatedSections.length) {
     auroraState.setState(updates, { source: "remote", updatedAt });
   }
@@ -327,7 +371,7 @@ async function initialSync() {
     const snapshot = await getDoc(stateRef);
     const data = snapshot.exists() ? snapshot.data() : null;
     if (!data || !Object.keys(data).length) {
-      pendingSections = new Set(["gear", "pills", "userItems", "checklist"]);
+      pendingSections = new Set(["gear", "pills", "userItems", "checklist", "copyPhrases"]);
       await pushPendingChanges();
       return;
     }

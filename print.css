@@ -27,8 +27,7 @@
   .day-card,
   .card,
   .hero-card,
-  .day-section,
-  .today-card {
+  .day-section {
     box-shadow: none;
     border: 1px solid #ccc;
   }

@@ -12,6 +12,7 @@ Clear these localStorage keys to reset user data:
 - `aurora-outing-gear-v1` (outing gear matrix)
 - `aurora-pills-v1` (daily pills tracker per day)
 - `aurora-user-items-v1` (user-added events + notes)
+- `aurora-copy-phrases-v1` (copy phrases panel items)
 
 In the UI you can also use the "Reset today" / "Reset all" buttons in the pills panel and the reset buttons in Outing Gear to clear local data quickly.
 
@@ -42,6 +43,10 @@ Cache TTLs:
 ## Optional Firestore sync (anonymous auth + trip code)
 
 This app is static and works offline by default. Optional cloud sync can be enabled using Firebase (no backend server required).
+
+## Copy phrases panel
+
+The Copy phrases panel provides quick copy buttons for addresses, transport identifiers, and essentials. It supports add/edit/delete for custom items, filters by category, and includes a search box. Phrases are stored locally for offline use and queued for sync when Firestore is enabled. Local edits are merged by item id with tombstone deletions, so removing a custom item persists across devices. The sync payload lives in the Firestore document `trips/{tripCode}/state/global` under `copyPhrases.items`.【F:assets/js/sync.js†L61-L167】
 
 ### Setup steps
 1. Create a Firebase project and enable **Anonymous Authentication**.

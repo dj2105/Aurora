@@ -47,17 +47,9 @@
             <span class="hud-action__icon" aria-hidden="true">🗺️</span>
             <span class="hud-action__label">Maps</span>
           </a>
-          <button class="hud-action" type="button" data-action="copy">
-            <span class="hud-action__icon" aria-hidden="true">🏠</span>
-            <span class="hud-action__label">Stay</span>
-          </button>
           <a class="hud-action" data-action="supermarket" href="#" target="_blank" rel="noreferrer">
             <span class="hud-action__icon" aria-hidden="true">🛒</span>
             <span class="hud-action__label">Market</span>
-          </a>
-          <a class="hud-action" data-action="best-chance" href="#">
-            <span class="hud-action__icon" aria-hidden="true">✨</span>
-            <span class="hud-action__label">Aurora</span>
           </a>
         </div>
         <p class="hud-status" data-role="hud-status"></p>
@@ -85,10 +77,6 @@
           <h2>Now / Next</h2>
           <div class="now-next__grid">
             <div>
-              <p class="label">Local time</p>
-              <p class="value" id="current-time">--:--</p>
-            </div>
-            <div>
               <p class="label">Location</p>
               <p class="value" id="current-location">Tornio</p>
             </div>
@@ -98,11 +86,21 @@
             <p class="value" id="next-title">Loading…</p>
             <p class="meta" id="next-meta"></p>
           </div>
-          <div class="zone-toggle" role="group" aria-label="Time zone display">
-            <button type="button" class="zone-toggle__button is-active" data-zone="local">Local</button>
-            <button type="button" class="zone-toggle__button" data-zone="home">Home</button>
-            <button type="button" class="zone-toggle__button" data-zone="both">Both</button>
-          </div>
+          <details class="time-settings">
+            <summary>Time display</summary>
+            <div class="time-settings__controls">
+              <label>
+                <span class="sr-only">Time display</span>
+                <select id="time-display">
+                  <option value="transport">Both (transport only)</option>
+                  <option value="finland">Finland</option>
+                  <option value="ireland">Ireland</option>
+                  <option value="both">Both (all events)</option>
+                </select>
+              </label>
+              <p class="meta">Default shows both time zones for transport only.</p>
+            </div>
+          </details>
         </div>
       </section>
 
@@ -152,7 +150,6 @@
         </header>
         <div class="grid key-info-grid">
           <div class="card key-info-card" id="key-info-card">
-            <h3>Key Info</h3>
             <div class="key-info__content" id="key-info-content"></div>
           </div>
           <div class="card pills-panel" id="pills-panel">
@@ -179,6 +176,66 @@
             <p class="meta">Quick notes with no specific day.</p>
           </div>
           <div class="notes-inbox__list" id="notes-inbox-list"></div>
+        </div>
+      </section>
+
+      <section class="section" id="copy-phrases" aria-label="Copy phrases">
+        <header class="section-header">
+          <h2>Copy phrases</h2>
+          <p>Tap to copy essentials, with edits synced through Firestore when enabled.</p>
+        </header>
+        <div class="copy-phrases">
+          <div class="copy-phrases__controls">
+            <label class="copy-phrases__search">
+              <span class="sr-only">Search phrases</span>
+              <input id="copy-phrases-search" type="search" placeholder="Search phrases" />
+            </label>
+            <label>
+              <span class="sr-only">Filter by category</span>
+              <select id="copy-phrases-filter">
+                <option value="all">All categories</option>
+                <option value="places">Places</option>
+                <option value="transport">Transport</option>
+                <option value="shops">Shops</option>
+                <option value="essentials">Essentials</option>
+                <option value="custom">Custom</option>
+              </select>
+            </label>
+          </div>
+          <form class="copy-phrases__form" id="copy-phrases-form">
+            <label>
+              <span>Category</span>
+              <select id="copy-phrases-category">
+                <option value="places">Places</option>
+                <option value="transport">Transport</option>
+                <option value="shops">Shops</option>
+                <option value="essentials">Essentials</option>
+                <option value="custom">Custom</option>
+              </select>
+            </label>
+            <label>
+              <span>Label</span>
+              <input id="copy-phrases-label" type="text" required />
+            </label>
+            <label>
+              <span>Text</span>
+              <input id="copy-phrases-text" type="text" required />
+            </label>
+            <label>
+              <span>Open URL (optional)</span>
+              <input id="copy-phrases-url" type="url" placeholder="https://maps.google.com/..." />
+            </label>
+            <button class="pill" type="submit" id="copy-phrases-submit">Add phrase</button>
+            <button class="pill" type="button" id="copy-phrases-cancel" hidden>Cancel edit</button>
+          </form>
+          <div class="copy-phrases__table" role="table" aria-label="Copy phrases table">
+            <div class="copy-phrases__row copy-phrases__row--header" role="row">
+              <span role="columnheader">Label</span>
+              <span role="columnheader">Text</span>
+              <span role="columnheader">Actions</span>
+            </div>
+            <div class="copy-phrases__body" id="copy-phrases-body"></div>
+          </div>
         </div>
       </section>
 
@@ -252,34 +309,6 @@
         </div>
       </section>
 
-      <section class="section" id="today" aria-label="Today plan">
-        <header class="section-header">
-          <h2>Today</h2>
-          <p>Fast access to the next steps, maps, and today’s highlights.</p>
-        </header>
-        <div class="today-card" id="today-card">
-          <div class="today-card__header">
-            <div>
-              <p class="label">Date</p>
-              <p class="value" id="today-date">--</p>
-            </div>
-            <div>
-              <p class="label">Location</p>
-              <p class="value" id="today-location">--</p>
-            </div>
-          </div>
-          <div>
-            <p class="label">Next up</p>
-            <ul class="today-card__list" id="today-events"></ul>
-          </div>
-          <div class="today-card__actions">
-            <button class="pill" type="button" id="today-jump">Jump to today</button>
-            <a class="pill" id="today-map" href="#" target="_blank" rel="noreferrer">Open Base Map</a>
-            <a class="pill" id="today-supermarket" href="#" target="_blank" rel="noreferrer">Open Supermarket</a>
-          </div>
-        </div>
-      </section>
-
       <section class="section" id="days" aria-label="Trip days">
         <header class="section-header">
           <h2>Daily plan</h2>
@@ -326,26 +355,6 @@
         <div class="checklist" id="checklist-sections"></div>
       </section>
 
-      <section class="section" id="emergency" aria-label="Emergency info">
-        <header class="section-header">
-          <h2>Emergency & Practical</h2>
-          <p>Copy-ready essentials for local services and accommodation.</p>
-        </header>
-        <div class="grid emergency-grid">
-          <div class="card">
-            <h3>Emergency (Finland)</h3>
-            <p class="meta">112 for urgent assistance.</p>
-          </div>
-          <div class="card">
-            <h3>Accommodation address</h3>
-            <p class="meta">1409 Jokivarrentie, 95520 Tornio, Finland</p>
-          </div>
-          <div class="card">
-            <h3>Taxi</h3>
-            <p class="meta">Call local dispatcher or use a ride app.</p>
-          </div>
-        </div>
-      </section>
     </main>
 
     <div class="install-toast" id="install-toast" role="status" aria-live="polite" hidden></div>
