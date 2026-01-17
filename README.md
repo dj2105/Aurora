@@ -13,8 +13,13 @@ Clear these localStorage keys to reset user data:
 - `aurora-pills-v1` (daily pills tracker per day)
 - `aurora-user-items-v1` (user-added events + notes)
 - `aurora-copy-phrases-v1` (copy phrases panel items)
+- `aurora-ui-v1` (UI preferences like Large text)
 
 In the UI you can also use the "Reset today" / "Reset all" buttons in the pills panel and the reset buttons in Outing Gear to clear local data quickly.
+
+## Large text mode
+
+Use the "Large text" toggle in the Sync across devices panel to enable big text mode. The setting is stored in `localStorage` under `aurora-ui-v1` as `bigText`, and syncs (when enabled) to `trips/{tripCode}/state/global` as `ui.bigText`.【F:index.html†L107-L150】
 
 ## PWA cache versioning
 

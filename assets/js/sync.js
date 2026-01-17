@@ -239,6 +239,13 @@ function buildRemotePayload(sections) {
     };
   }
 
+  if (sections.includes("ui")) {
+    payload.ui = {
+      bigText: Boolean(state.ui?.bigText),
+      updatedAt: serverTimestamp(),
+    };
+  }
+
   payload.updatedAt = serverTimestamp();
   return payload;
 }
@@ -294,6 +301,7 @@ function applyRemoteState(remote) {
   const remoteUserItemsUpdated = timestampToMillis(remote?.userItems?.updatedAt ?? remote?.updatedAt);
   const remoteChecklistUpdated = timestampToMillis(remote?.checklist?.updatedAt ?? remote?.updatedAt);
   const remoteCopyPhrasesUpdated = timestampToMillis(remote?.copyPhrases?.updatedAt ?? remote?.updatedAt);
+  const remoteUiUpdated = timestampToMillis(remote?.ui?.updatedAt ?? remote?.updatedAt);
 
   if (remoteGearUpdated > (state.updatedAt?.gear ?? 0)) {
     const remoteItems = Array.isArray(remote?.gear?.items) ? remote.gear.items : [];
@@ -353,6 +361,14 @@ function applyRemoteState(remote) {
     pendingLocalSections.push("copyPhrases");
   }
 
+  if (remoteUiUpdated > (state.updatedAt?.ui ?? 0)) {
+    updates.ui = { bigText: Boolean(remote?.ui?.bigText) };
+    updatedAt.ui = remoteUiUpdated;
+    updatedSections.push("ui");
+  } else if (state.updatedAt?.ui && remoteUiUpdated && state.updatedAt.ui > remoteUiUpdated) {
+    pendingLocalSections.push("ui");
+  }
+
   if (updatedSections.length) {
     auroraState.setState(updates, { source: "remote", updatedAt });
   }
@@ -371,7 +387,7 @@ async function initialSync() {
     const snapshot = await getDoc(stateRef);
     const data = snapshot.exists() ? snapshot.data() : null;
     if (!data || !Object.keys(data).length) {
-      pendingSections = new Set(["gear", "pills", "userItems", "checklist", "copyPhrases"]);
+      pendingSections = new Set(["gear", "pills", "userItems", "checklist", "copyPhrases", "ui"]);
       await pushPendingChanges();
       return;
     }
