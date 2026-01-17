@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <base href="/Aurora/" />
     <title>Aurora Trip Reference</title>
-    <meta name="theme-color" content="#0f2f33" />
+    <meta name="theme-color" content="#000000" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
@@ -61,24 +61,17 @@
     </div>
 
     <main class="page">
-      <section class="hero">
-        <div class="hero-card">
-          <h1>Aurora Trip Reference</h1>
-          <p class="hero-subtitle">Fast, offline-friendly details for daily plans, maps, and aurora checks.</p>
-          <div class="hero-actions">
-            <a class="pill" href="#days">Plan</a>
-            <a class="pill" href="#maps">Maps</a>
-            <a class="pill" href="#checklist">Checklist</a>
-            <button class="pill" type="button" id="share-trip">Share trip</button>
-            <button class="pill" type="button" id="print-trip">Print / Save PDF</button>
-          </div>
-        </div>
+      <section class="hero tab-section" data-tab-section="home">
         <div class="hero-card now-next" aria-live="polite">
           <h2>Now / Next</h2>
           <div class="now-next__grid">
             <div>
               <p class="label">Location</p>
-              <p class="value" id="current-location">Tornio</p>
+              <p class="value value--hero" id="current-location">Tornio</p>
+            </div>
+            <div>
+              <p class="label">Local time</p>
+              <p class="value value--hero value--time" id="current-time">--:--</p>
             </div>
           </div>
           <div class="next-card">
@@ -102,9 +95,17 @@
             </div>
           </details>
         </div>
+        <div class="hero-card hero-card--intro">
+          <h1>Aurora Trip Reference</h1>
+          <p class="hero-subtitle">Fast, offline-friendly details for daily plans, maps, and aurora checks.</p>
+          <div class="hero-actions">
+            <button class="pill" type="button" id="share-trip">Share trip</button>
+            <button class="pill" type="button" id="print-trip">Print / Save PDF</button>
+          </div>
+        </div>
       </section>
 
-      <section class="section" id="sync" aria-label="Sync across devices">
+      <section class="section tab-section" data-tab-section="settings" id="sync" aria-label="Sync across devices">
         <header class="section-header">
           <h2>Sync across devices</h2>
           <p>Optional Firestore sync for gear, pills, checklist, and notes. Local storage stays the default.</p>
@@ -152,7 +153,7 @@
         </div>
       </section>
 
-      <section class="section" id="key-info" aria-label="Key info">
+      <section class="section tab-section" data-tab-section="home" id="key-info" aria-label="Key info">
         <header class="section-header">
           <h2>Key info</h2>
           <p>Quick reference for check-in details, trains, and daily pills.</p>
@@ -173,7 +174,7 @@
         </div>
       </section>
 
-      <section class="section" aria-label="Search">
+      <section class="section tab-section" data-tab-section="home" aria-label="Search">
         <label class="search" for="search">
           <span>Search</span>
           <input id="search" type="search" placeholder="Search events, bookings, addresses" />
@@ -188,7 +189,7 @@
         </div>
       </section>
 
-      <section class="section" id="copy-phrases" aria-label="Copy phrases">
+      <section class="section tab-section" data-tab-section="tools" id="copy-phrases" aria-label="Copy phrases">
         <header class="section-header">
           <h2>Copy phrases</h2>
           <p>Tap to copy essentials, with edits synced through Firestore when enabled.</p>
@@ -248,7 +249,7 @@
         </div>
       </section>
 
-      <section class="section" id="add-item" aria-label="Add trip item">
+      <section class="section tab-section" data-tab-section="settings" id="add-item" aria-label="Add trip item">
         <header class="section-header">
           <h2>Add item</h2>
           <p>Add a new event or note without editing the trip file.</p>
@@ -287,7 +288,7 @@
         </form>
       </section>
 
-      <section class="section" id="outing-gear" aria-label="Outing gear checklist">
+      <section class="section tab-section" data-tab-section="tools" id="outing-gear" aria-label="Outing gear checklist">
         <header class="section-header">
           <h2>Outing Gear Checklist</h2>
           <p>Before stepping outside, tap Daniel or Jaime to confirm gear.</p>
@@ -318,7 +319,7 @@
         </div>
       </section>
 
-      <section class="section" id="days" aria-label="Trip days">
+      <section class="section tab-section" data-tab-section="plan" id="days" aria-label="Trip days">
         <header class="section-header">
           <h2>Daily plan</h2>
           <p>Tap a day chip above to jump to that section.</p>
@@ -326,7 +327,7 @@
         <div class="day-list" id="days-list"></div>
       </section>
 
-      <section class="section" id="best-chance" aria-label="Best aurora chance">
+      <section class="section tab-section" data-tab-section="home" id="best-chance" aria-label="Best aurora chance">
         <header class="section-header">
           <h2>Best chance tonight</h2>
           <p>Check cloud cover first. If clear, step outside hourly.</p>
@@ -334,7 +335,7 @@
         <div class="live-dashboard" data-day="2026-01-21"></div>
       </section>
 
-      <section class="section" id="bookings" aria-label="Bookings and documents">
+      <section class="section tab-section" data-tab-section="plan" id="bookings" aria-label="Bookings and documents">
         <header class="section-header">
           <h2>Bookings</h2>
           <p>Quick references for transport, stays, and confirmations.</p>
@@ -342,7 +343,7 @@
         <div class="grid" id="bookings-grid"></div>
       </section>
 
-      <section class="section" id="maps" aria-label="Maps hub">
+      <section class="section tab-section" data-tab-section="tools" id="maps" aria-label="Maps hub">
         <header class="section-header">
           <h2>Maps</h2>
           <p>Open each location in Google Maps in one tap.</p>
@@ -350,7 +351,7 @@
         <div class="grid" id="maps-grid"></div>
       </section>
 
-      <section class="section" id="checklist" aria-label="Checklist">
+      <section class="section tab-section" data-tab-section="tools" id="checklist" aria-label="Checklist">
         <header class="section-header">
           <h2>Checklist</h2>
           <p>Tap to tick off items. Saved locally for offline use.</p>
@@ -365,6 +366,25 @@
       </section>
 
     </main>
+
+    <nav class="bottom-nav" aria-label="Primary">
+      <button class="bottom-nav__button is-active" type="button" data-tab="home">
+        <span class="bottom-nav__icon" aria-hidden="true">🏠</span>
+        <span class="bottom-nav__label">Home</span>
+      </button>
+      <button class="bottom-nav__button" type="button" data-tab="plan">
+        <span class="bottom-nav__icon" aria-hidden="true">🗓️</span>
+        <span class="bottom-nav__label">Plan</span>
+      </button>
+      <button class="bottom-nav__button" type="button" data-tab="tools">
+        <span class="bottom-nav__icon" aria-hidden="true">🧰</span>
+        <span class="bottom-nav__label">Tools</span>
+      </button>
+      <button class="bottom-nav__button" type="button" data-tab="settings">
+        <span class="bottom-nav__icon" aria-hidden="true">⚙️</span>
+        <span class="bottom-nav__label">Settings</span>
+      </button>
+    </nav>
 
     <div class="install-toast" id="install-toast" role="status" aria-live="polite" hidden></div>
     <div class="offline-toast" id="offline-toast" role="status" aria-live="polite" hidden></div>
