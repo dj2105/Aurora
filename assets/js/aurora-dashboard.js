@@ -103,27 +103,25 @@ function renderDashboard(container, data) {
         <p>${formatMetric(data.kpForecastNight, "")}</p>
       </div>
     </div>
-    ${
-      data.nightAvailable
-        ? `<div class="dashboard-card">
-          <h3>Night cloud timeline</h3>
-          <div class="dashboard-timeline" role="list">
-            ${data.nightHours
-              .map((hour) => {
-                const hourLabel = hour.time.slice(11, 13);
-                const cloud = Math.min(100, Math.max(0, hour.cloud ?? 0));
-                return `
-                  <div class="dashboard-hour" role="listitem">
-                    <span class="dashboard-bar" style="--cloud: ${cloud}"></span>
-                    <span class="dashboard-hour-label">${hourLabel}</span>
-                  </div>
-                `;
-              })
-              .join("")}
-          </div>
-        </div>`
-        : ""
-    }
+    <div class="dashboard-card">
+      <h3>Night cloud timeline (20\u201302)</h3>
+      <div class="dashboard-timeline" role="list">
+        ${data.nightHours
+          .map((hour) => {
+            const hourLabel = hour.time.slice(11, 13);
+            const hasCloud = hour.cloud !== null && hour.cloud !== undefined;
+            const cloud = Math.min(100, Math.max(0, hasCloud ? hour.cloud : 0));
+            return `
+              <div class="dashboard-hour ${hasCloud ? "" : "is-missing"}" role="listitem">
+                <span class="dashboard-bar" style="--cloud: ${cloud}"></span>
+                <span class="dashboard-hour-label">${hourLabel}</span>
+              </div>
+            `;
+          })
+          .join("")}
+      </div>
+      ${data.nightAvailable ? "" : `<p class="dashboard-note">Forecast not available yet for this date.</p>`}
+    </div>
     ${data.status ? `<p class="dashboard-status">${data.status}</p>` : ""}
   `;
 }
@@ -177,9 +175,6 @@ async function loadDashboard(container) {
 
   const stale = weather.stale || kpObservedResult.stale || kpForecastResult.stale;
   const statusParts = [];
-  if (!nightAvailable) {
-    statusParts.push("Forecast not available yet for this date.");
-  }
   if (stale) {
     statusParts.push("Cached data in use.");
   }

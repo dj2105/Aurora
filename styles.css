@@ -479,6 +479,97 @@ html {
   justify-self: start;
 }
 
+.key-info-grid {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.key-info__content {
+  display: grid;
+  gap: var(--space-sm);
+  font-size: 0.9rem;
+}
+
+.key-info__section h4 {
+  margin: 0 0 0.4rem;
+  font-size: 0.9rem;
+}
+
+.key-info__list {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.35rem;
+  color: var(--text-muted);
+}
+
+.key-info__list strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.pills-panel {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.pills-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  font-size: 0.85rem;
+}
+
+.pill-indicator {
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.pill-indicator.is-done {
+  background: var(--accent-surface);
+  color: var(--accent-text);
+  border-color: transparent;
+}
+
+.pills-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.day-pills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 0.85rem;
+}
+
+.day-pills__label {
+  color: var(--text-muted);
+}
+
+.pill-toggle {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: var(--radius-pill);
+  padding: 0.25rem 0.6rem;
+  cursor: pointer;
+  font-size: 0.75rem;
+}
+
+.pill-toggle.is-active {
+  background: color-mix(in srgb, var(--accent) 25%, var(--surface));
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+
 .outing-gear__add {
   margin: var(--space-md) 0;
   display: flex;
@@ -559,12 +650,13 @@ html {
 }
 
 .gear-toggle.is-active {
-  background: var(--accent-surface);
-  color: var(--accent-text);
-  border-color: transparent;
+  background: color-mix(in srgb, var(--accent) 25%, var(--surface));
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
 }
 
 .gear-toggle:focus-visible,
+.pill-toggle:focus-visible,
 .outing-gear__remove:focus-visible,
 .notes-card__header button:focus-visible,
 .event-remove:focus-visible {
@@ -624,6 +716,14 @@ html {
 
 .event.event--unscheduled {
   grid-template-columns: 1fr;
+}
+
+.event-when {
+  margin: 0 0 0.2rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .event-time {
