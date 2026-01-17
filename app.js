@@ -41,9 +41,6 @@ const thingysInput = document.getElementById("thingys-input");
 const thingysCategoryInput = document.getElementById("thingys-category");
 const thingysCategoryList = document.getElementById("thingys-categories");
 
-const nowLocationEl = document.getElementById("current-location");
-const nextTitleEl = document.getElementById("next-title");
-const nextMetaEl = document.getElementById("next-meta");
 const actionToast = document.getElementById("action-toast");
 const addItemForm = document.getElementById("user-item-form");
 const addItemDay = document.getElementById("user-item-day");
@@ -446,8 +443,14 @@ function toDateValue(dateString, timeString) {
 }
 
 function formatEventTime(event) {
-  if (!event?.time) return "";
-  return event.time;
+  const timeValue = event?.time ?? event?.departTime ?? event?.startTime ?? null;
+  if (!timeValue) return "";
+  return timeValue;
+}
+
+function getEventSortMinutes(event) {
+  const timeValue = event?.time ?? event?.departTime ?? event?.startTime ?? null;
+  return parseTimeToMinutes(timeValue);
 }
 
 function renderTimeline() {
@@ -459,7 +462,7 @@ function renderTimeline() {
     link.type = "button";
     link.className = "day-chip";
     link.dataset.day = day.date;
-    link.textContent = formatTripDate(day.date, day.timeZone);
+    link.textContent = day.weekday ?? formatTripDate(day.date, day.timeZone);
     if (day.date === getDateString(day.timeZone)) {
       link.classList.add("is-today");
     }
@@ -487,17 +490,17 @@ function getMergedEvents(day) {
 
   const combined = [...baseEvents, ...userEvents];
   const scheduled = combined
-    .filter((event) => event.time)
+    .filter((event) => getEventSortMinutes(event) !== null)
     .sort((a, b) => {
-      const aMinutes = parseTimeToMinutes(a.time);
-      const bMinutes = parseTimeToMinutes(b.time);
+      const aMinutes = getEventSortMinutes(a);
+      const bMinutes = getEventSortMinutes(b);
       if (aMinutes === null && bMinutes === null) return a.order - b.order;
       if (aMinutes === null) return 1;
       if (bMinutes === null) return -1;
       return aMinutes - bMinutes;
     });
   const unscheduled = combined
-    .filter((event) => !event.time)
+    .filter((event) => getEventSortMinutes(event) === null)
     .sort((a, b) => a.order - b.order);
   return [...scheduled, ...unscheduled];
 }
@@ -524,6 +527,41 @@ function isAuroraEvent(event) {
   return title.includes("aurora") || type.includes("aurora");
 }
 
+const flightStatusTemplates = {
+  AY: ({ flightNumber, flightDate }) =>
+    `https://www.finnair.com/fi-en/flight-status?flightNumber=${encodeURIComponent(
+      flightNumber ?? ""
+    )}&departureDate=${encodeURIComponent(flightDate ?? "")}`,
+};
+
+function buildFlightStatusLink(event) {
+  if (!event?.flightNumber) return "";
+  const airlineCode = event.airlineCode?.toUpperCase() ?? "";
+  const template = flightStatusTemplates[airlineCode];
+  if (template) {
+    return template(event);
+  }
+  const query = `${event.flightNumber} flight status ${event.flightDate ?? ""}`.trim();
+  return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+}
+
+function buildTransportStatusLink(event) {
+  if (event?.statusLink) return event.statusLink;
+  if (event?.flightNumber) return buildFlightStatusLink(event);
+  if (event?.transportNumber) {
+    const query = `${event.transportNumber} ${event.transportType ?? "transport"} status`.trim();
+    return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+  }
+  return "";
+}
+
+function buildTransportTiming(event) {
+  const depart = event?.departTime ?? event?.time ?? "";
+  const arrive = event?.arriveTime ?? "";
+  if (depart && arrive) return `${depart} → ${arrive}`;
+  return depart || arrive;
+}
+
 function renderDayCarousel() {
   if (!carouselTrack) return;
   carouselTrack.innerHTML = "";
@@ -536,17 +574,17 @@ function renderDayCarousel() {
     const header = document.createElement("header");
     header.className = "day-panel__header";
     header.innerHTML = `
-      <div>
+      <div class="day-panel__heading">
         <h3 class="day-panel__title">${day.weekday}</h3>
         <p class="day-panel__date">${formatDayHeader(day)}</p>
       </div>
     `;
 
     const pillsRow = document.createElement("div");
-    pillsRow.className = "day-pills";
+    pillsRow.className = "day-panel__pills";
     const pillsEntry = getPillsEntry(day.date);
     pillsRow.innerHTML = `
-      <span class="day-pills__label">Daily pill</span>
+      <span class="day-panel__pills-label">Pill</span>
       <button class="pill-toggle ${pillsEntry.daniel ? "is-active" : ""}" type="button" data-pill-toggle="daniel" data-pill-date="${day.date}" aria-pressed="${pillsEntry.daniel}">
         Daniel
       </button>
@@ -554,6 +592,7 @@ function renderDayCarousel() {
         Jaime
       </button>
     `;
+    header.appendChild(pillsRow);
 
     const eventList = document.createElement("div");
     eventList.className = "event-list";
@@ -608,6 +647,85 @@ function renderDayCarousel() {
         }
 
         content.appendChild(metaRow);
+
+        if (event.type === "transport") {
+          const transport = document.createElement("div");
+          transport.className = "event-transport";
+
+          const timing = buildTransportTiming(event);
+          if (timing) {
+            const timingRow = document.createElement("div");
+            timingRow.className = "event-transport__row";
+            timingRow.textContent = timing;
+            transport.appendChild(timingRow);
+          }
+
+          const numberRow = document.createElement("div");
+          numberRow.className = "event-transport__row";
+          const transportLink = buildTransportStatusLink(event);
+          if (event.flightNumber || event.transportNumber) {
+            const label = event.flightNumber ?? event.transportNumber;
+            if (transportLink) {
+              const link = document.createElement("a");
+              link.className = "event-transport__link";
+              link.href = transportLink;
+              link.target = "_blank";
+              link.rel = "noreferrer";
+              link.textContent = label;
+              numberRow.appendChild(link);
+            } else {
+              const text = document.createElement("span");
+              text.textContent = label;
+              numberRow.appendChild(text);
+            }
+          }
+          if (event.seatInfo) {
+            const seat = document.createElement("span");
+            seat.textContent = event.seatInfo;
+            numberRow.appendChild(seat);
+          }
+          if (numberRow.childNodes.length) {
+            transport.appendChild(numberRow);
+          }
+
+          const stopsRow = document.createElement("div");
+          stopsRow.className = "event-transport__row";
+          if (event.fromLabel) {
+            const from = document.createElement("span");
+            from.className = "event-transport__stop";
+            if (event.fromMap) {
+              const link = document.createElement("a");
+              link.href = event.fromMap;
+              link.target = "_blank";
+              link.rel = "noreferrer";
+              link.textContent = event.fromLabel;
+              from.append("From ", link);
+            } else {
+              from.textContent = `From ${event.fromLabel}`;
+            }
+            stopsRow.appendChild(from);
+          }
+          if (event.toLabel) {
+            const to = document.createElement("span");
+            to.className = "event-transport__stop";
+            if (event.toMap) {
+              const link = document.createElement("a");
+              link.href = event.toMap;
+              link.target = "_blank";
+              link.rel = "noreferrer";
+              link.textContent = event.toLabel;
+              to.append("To ", link);
+            } else {
+              to.textContent = `To ${event.toLabel}`;
+            }
+            stopsRow.appendChild(to);
+          }
+          if (stopsRow.childNodes.length) {
+            transport.appendChild(stopsRow);
+          }
+
+          content.appendChild(transport);
+        }
         row.appendChild(timeEl);
         row.appendChild(content);
         eventList.appendChild(row);
@@ -621,7 +739,6 @@ function renderDayCarousel() {
     addButton.textContent = "+ event";
 
     panel.appendChild(header);
-    panel.appendChild(pillsRow);
     panel.appendChild(eventList);
     panel.appendChild(addButton);
     carouselTrack.appendChild(panel);
@@ -833,12 +950,10 @@ function applyStateToUI(updatedSections = []) {
   if (updatedSections.includes("pills")) {
     renderDayCarousel();
     setupDayNav();
-    updateNowNext();
   }
   if (updatedSections.includes("userItems")) {
     renderDayCarousel();
     setupDayNav();
-    updateNowNext();
   }
   if (updatedSections.includes("copyPhrases")) {
     if (copySheetModal && !copySheetModal.hidden && activeCopyBookingId) {
@@ -1403,7 +1518,6 @@ function init() {
   setupEventDetailModal();
   setupCopySheet();
   setupBookings();
-  updateNowNext();
   setupBottomNav();
   setupUiToggles();
   setupDayNav();
@@ -1411,7 +1525,6 @@ function init() {
   window.AuroraState.ready = true;
   window.dispatchEvent(new CustomEvent("aurora-state-ready"));
   window.addEventListener("resize", updateStickyOffset);
-  setInterval(updateNowNext, 60000);
 }
 
 if (document.readyState === "loading") {
