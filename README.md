@@ -5,6 +5,13 @@ Lapland
 
 Edit the trip content in `assets/data/trip-data.js` (days, bookings, checklist, maps).【F:assets/data/trip-data.js†L1-L164】
 
+## Resetting stored data
+
+Clear these localStorage keys to reset user data:
+- `aurora-checklist` (packing checklist state)
+- `aurora-outing-gear-v1` (outing gear matrix)
+- `aurora-user-items-v1` (user-added events + notes)
+
 ## PWA cache versioning
 
 When you need to force a refresh, bump `CACHE_VERSION` in `sw.js`. This will invalidate the old caches on next load.【F:sw.js†L1-L29】
