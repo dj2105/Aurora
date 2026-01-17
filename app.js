@@ -502,6 +502,28 @@ function getDateString(timeZone) {
   }).format(new Date());
 }
 
+function parseTripDate(dateString) {
+  if (typeof dateString !== "string") return null;
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateString);
+  if (!match) return null;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  if (!year || !month || !day) return null;
+  return new Date(Date.UTC(year, month - 1, day, 12));
+}
+
+function formatTripDate(dateString, timeZone) {
+  const date = parseTripDate(dateString);
+  if (!date) return dateString;
+  return new Intl.DateTimeFormat("en-GB", {
+    weekday: "short",
+    day: "2-digit",
+    month: "short",
+    timeZone: timeZone ?? "UTC",
+  }).format(date);
+}
+
 function formatEventTime(event) {
   if (!event?.time) return "";
   if (displayZone === "ireland") {
@@ -522,15 +544,14 @@ function formatEventTime(event) {
 function renderTimeline() {
   if (!timelineEl) return;
   timelineEl.innerHTML = "";
-  const today = getDateString("Europe/Helsinki");
 
   days.forEach((day) => {
     const link = document.createElement("a");
     link.href = `#day-${day.date}`;
     link.className = "day-chip";
     link.dataset.day = day.date;
-    link.textContent = `${day.weekday.slice(0, 3)} ${day.date.slice(5)}`;
-    if (day.date === today) {
+    link.textContent = formatTripDate(day.date, day.timeZone);
+    if (day.date === getDateString(day.timeZone)) {
       link.classList.add("is-today");
     }
     timelineEl.appendChild(link);
@@ -1035,11 +1056,13 @@ function renderChecklist() {
       checkbox.type = "checkbox";
       checkbox.id = id;
       checkbox.checked = saved?.[sectionIndex]?.[itemIndex] ?? item.checked;
+      wrapper.classList.toggle("is-checked", checkbox.checked);
 
       checkbox.addEventListener("change", () => {
         const nextSaved = { ...saved };
         if (!nextSaved[sectionIndex]) nextSaved[sectionIndex] = {};
         nextSaved[sectionIndex][itemIndex] = checkbox.checked;
+        wrapper.classList.toggle("is-checked", checkbox.checked);
         setState({ checklist: nextSaved }, { updatedSections: ["checklist"] });
       });
 
