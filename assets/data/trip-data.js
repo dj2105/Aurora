@@ -7,7 +7,6 @@ const days = [
     baseLocation: "Travel day (Ireland → England → Finland)",
     daylight: {
       show: true,
-      note: "Render sunrise/sunset dynamically per airport city.",
       sources: [
         {
           label: "Timeanddate — Rovaniemi sunrise/sunset (date-specific)",
@@ -18,7 +17,6 @@ const days = [
     events: [
       {
         type: "flight",
-        statusBadge: "Scheduled",
         title: "Fly: Dublin (DUB) → Birmingham (BHX)",
         time: { local: "06:15", tz: "Europe/Dublin" },
         flight: {
@@ -34,12 +32,10 @@ const days = [
             map: {
               label: "DUB interactive map",
               href: "https://www.dublinairport.com/at-the-airport/the-map",
-              hint: "Make this a prominent button: “Open DUB map”",
             },
             live: {
               label: "DUB live flights",
               href: "https://www.dublinairport.com/flight-information/live-arrivals",
-              hint: "If your site supports tabs, show Arrivals + Departures",
             },
           },
           {
@@ -48,39 +44,26 @@ const days = [
             live: {
               label: "BHX live flights",
               href: "https://www.birminghamairport.co.uk/flights/",
-              hint: "Link to flights page; let user choose arrivals/departures",
             },
           },
-        ],
-        webFormatTips: [
-          "Make the whole event row clickable to the live-flight page; add a smaller 'Map' button.",
-          "Include a 'Copy flight' icon: copies airline + flight number + time + booking ref.",
-          "Show a tiny badge: 'GMT' so timezone is explicit.",
         ],
       },
       {
         type: "layover",
-        statusBadge: "In-between",
         title: "Layover: Birmingham (BHX)",
         time: {
           local: "CALCULATE_FROM_ACTUAL_ARRIVAL_AND_17_30_DEPARTURE",
           tz: "Europe/London",
         },
         details: [
-          "Total layover time should be computed by the site from actual arrival time (pull from live flight status if possible).",
           "Good slot for: food, coffee, battery charging, any last-minute airport essentials.",
         ],
         links: [
           { label: "BHX live flights (for gate updates)", href: "https://www.birminghamairport.co.uk/flights/" },
         ],
-        webFormatTips: [
-          "If you can, auto-calc and display: 'Time until next departure' countdown.",
-          "Add a 'Food near gate' link slot the user can fill later (optional).",
-        ],
       },
       {
         type: "flight",
-        statusBadge: "Scheduled",
         title: "Fly: Birmingham (BHX) → Rovaniemi (RVN)",
         time: { local: "17:30", tz: "Europe/London" },
         flight: {
@@ -101,27 +84,19 @@ const days = [
             live: {
               label: "Finavia — Rovaniemi flights",
               href: "https://www.finavia.fi/en/airports/rovaniemi/flights",
-              hint: "Use if you want an airport-native live board",
             },
             map: {
               label: "Finavia — Rovaniemi airport",
               href: "https://www.finavia.fi/en/airports/rovaniemi",
-              hint: "Put terminal/transport buttons here",
             },
           },
         ],
       },
       {
         type: "overnight",
-        statusBadge: "Unbooked",
         title: "Overnight near Rovaniemi (needed)",
         details: [
           "Your Tornio chalet check-in is Tue 20 Jan, so Monday night accommodation/plan is required.",
-          "Keep as a placeholder event until booked.",
-        ],
-        webFormatTips: [
-          "Add a 'To-do' checkbox and allow attaching a booking PDF/email later.",
-          "Show quick buttons: 'Search near RVN airport' / 'Search near Rovaniemi station'.",
         ],
       },
     ],
@@ -134,7 +109,6 @@ const days = [
     baseLocation: "Rovaniemi → Tornio (check-in day)",
     daylight: {
       show: true,
-      note: "Render sunrise/sunset dynamically for Tornio (your base).",
       sources: [
         {
           label: "Timeanddate — Tornio sunrise/sunset (date-specific)",
@@ -145,7 +119,6 @@ const days = [
     events: [
       {
         type: "train",
-        statusBadge: "Confirmed",
         title: "Train: Rovaniemi → Kemi (IC 22)",
         time: { local: "05:15", tz: "Europe/Helsinki" },
         arrivalTime: { local: "06:35", tz: "Europe/Helsinki" },
@@ -168,14 +141,9 @@ const days = [
             },
           ],
         },
-        webFormatTips: [
-          "Make the ticket links separate buttons: 'Open ticket' and 'Backup ticket'.",
-          "Add a 'Show QR full-screen' affordance if your site can embed/preview.",
-        ],
       },
       {
         type: "train",
-        statusBadge: "Confirmed",
         title: "Train: Kemi → Tornio-Itäinen (Night train 269)",
         time: { local: "07:56", tz: "Europe/Helsinki" },
         arrivalTime: { local: "08:21", tz: "Europe/Helsinki" },
@@ -201,7 +169,6 @@ const days = [
       },
       {
         type: "local_transport",
-        statusBadge: "Plan needed",
         title: "Local transfer: Tornio-Itäinen → Riverside Restplace (Tornio)",
         details: [
           "No car: likely bus + walk, or taxi (especially with luggage).",
@@ -213,14 +180,9 @@ const days = [
             href: "https://www.tornio.fi/en/housing-and-environment/streets-and-transport/public-transport-within-the-city-area/",
           },
         ],
-        webFormatTips: [
-          "Add a 'Route' button that deep-links to Google/Apple Maps using the address field below.",
-          "Add a 'Call taxi' slot (click-to-call) once you decide a provider.",
-        ],
       },
       {
         type: "checkin",
-        statusBadge: "Scheduled window",
         title: "Check-in: Riverside Restplace",
         timeWindow: { start: "15:00", end: "18:00", tz: "Europe/Helsinki" },
         place: {
@@ -242,14 +204,9 @@ const days = [
           "Keys: lockbox on location.",
           "Provider note: cash only (treat as 'extras/incidental' unless told otherwise).",
         ],
-        webFormatTips: [
-          "Render the phone number as a tap-to-call button.",
-          "Add a 'Copy address' button for taxi apps.",
-        ],
       },
       {
         type: "task",
-        statusBadge: "Flexible",
         title: "Grocery shopping (after check-in)",
         details: [
           "Add staple food + hot drinks + easy dinners for aurora evenings.",
@@ -261,14 +218,9 @@ const days = [
             href: "https://www.google.com/maps/search/supermarket/@?api=1&query=supermarket&query_place_id=",
           },
         ],
-        webFormatTips: [
-          "If your site supports location, replace the placeholder with a real 'near this address' search link.",
-          "Add a checklist inside the event (editable): oats, yoghurt, bread, soup, pasta, snacks, thermos drink.",
-        ],
       },
       {
         type: "aurora",
-        statusBadge: "Night window",
         title: "Aurora watch (Tornio base)",
         details: [
           "Primary check: cloud cover (hourly). Secondary: aurora activity/oval.",
@@ -277,10 +229,6 @@ const days = [
         links: [
           { label: "FMI aurora & space weather", href: "https://en.ilmatieteenlaitos.fi/auroras-and-space-weather" },
           { label: "FMI local weather (cloud/hourly)", href: "https://en.ilmatieteenlaitos.fi/local-weather" },
-        ],
-        webFormatTips: [
-          "Embed two mini-widgets side-by-side: 'Cloud % next 6h' and 'Aurora activity'.",
-          "Let users log sightings with a 'Seen? yes/no' toggle + optional photo upload.",
         ],
       },
     ],
@@ -303,18 +251,12 @@ const days = [
     events: [
       {
         type: "base_day",
-        statusBadge: "Open plan",
         title: "Tornio base day",
         details: ["Local exploring / rest / sauna.", "Top-up groceries if needed."],
         links: [{ label: "TornioHaparanda visitor info", href: "https://www.torniohaparanda.com/en/" }],
-        webFormatTips: [
-          "Add an 'Ideas carousel' with 4 tiles (walks / museums / border area / cafes).",
-          "Allow saving favourite places with a heart/bookmark icon.",
-        ],
       },
       {
         type: "aurora",
-        statusBadge: "Night window",
         title: "Aurora watch (Tornio)",
         links: [
           { label: "FMI aurora & space weather", href: "https://en.ilmatieteenlaitos.fi/auroras-and-space-weather" },
@@ -341,7 +283,6 @@ const days = [
     events: [
       {
         type: "base_day",
-        statusBadge: "Open plan",
         title: "Tornio base day",
         details: [
           "Optional day trip ideas can be pinned here (no fixed times).",
@@ -356,7 +297,6 @@ const days = [
       },
       {
         type: "aurora",
-        statusBadge: "Night window",
         title: "Aurora watch (Tornio)",
         links: [
           { label: "FMI aurora & space weather", href: "https://en.ilmatieteenlaitos.fi/auroras-and-space-weather" },
@@ -383,7 +323,6 @@ const days = [
     events: [
       {
         type: "base_day",
-        statusBadge: "Open plan",
         title: "Last full day in Tornio",
         details: [
           "Good day for: any last supplies, packing admin, and a final aurora attempt.",
@@ -392,7 +331,6 @@ const days = [
       },
       {
         type: "aurora",
-        statusBadge: "Night window",
         title: "Aurora watch (Tornio — final night)",
         links: [
           { label: "FMI aurora & space weather", href: "https://en.ilmatieteenlaitos.fi/auroras-and-space-weather" },
@@ -409,7 +347,6 @@ const days = [
     baseLocation: "Tornio → Kemi → Rovaniemi → Birmingham → Dublin",
     daylight: {
       show: true,
-      note: "Show Tornio + Rovaniemi daylight, as you move locations.",
       sources: [
         {
           label: "Timeanddate — Tornio sunrise/sunset",
@@ -424,7 +361,6 @@ const days = [
     events: [
       {
         type: "checkout",
-        statusBadge: "Scheduled window",
         title: "Check-out: Riverside Restplace",
         timeWindow: { start: "08:00", end: "11:00", tz: "Europe/Helsinki" },
         place: {
@@ -434,7 +370,6 @@ const days = [
       },
       {
         type: "local_transport",
-        statusBadge: "Plan needed",
         title: "Transfer: Tornio → Kemi station",
         details: [
           "No fixed time here; ensure you reach Kemi station in time for the 09:36 train.",
@@ -449,7 +384,6 @@ const days = [
       },
       {
         type: "train",
-        statusBadge: "Confirmed",
         title: "Train: Kemi → Rovaniemi (Night train 273)",
         time: { local: "09:36", tz: "Europe/Helsinki" },
         arrivalTime: { local: "10:59", tz: "Europe/Helsinki" },
@@ -464,11 +398,9 @@ const days = [
       },
       {
         type: "bus",
-        statusBadge: "Timetable needed",
         title: "Bus: Rovaniemi (city) ↔ Rovaniemi Airport (RVN)",
         details: [
           "Use Airportbus.fi for the airport bus timetable (Airport Express / Santa’s Express routes vary).",
-          "Keep as a bus event with a single authoritative timetable link.",
         ],
         links: [
           { label: "Airportbus.fi timetables", href: "https://www.airportbus.fi/" },
@@ -477,14 +409,9 @@ const days = [
             href: "https://www.finavia.fi/en/airports/rovaniemi/parking-access/public-transport",
           },
         ],
-        webFormatTips: [
-          "Let users pin the specific departure they choose (no default time).",
-          "Add a 'Taxi fallback' button slot if bus frequency is low.",
-        ],
       },
       {
         type: "flight",
-        statusBadge: "Scheduled",
         title: "Fly: Rovaniemi (RVN) → Birmingham (BHX)",
         time: { local: "15:55", tz: "Europe/Helsinki" },
         flight: {
@@ -497,11 +424,9 @@ const days = [
           { label: "Finavia — RVN flights (live)", href: "https://www.finavia.fi/en/airports/rovaniemi/flights" },
           { label: "BHX live flights", href: "https://www.birminghamairport.co.uk/flights/" },
         ],
-        webFormatTips: ["Show BOTH time zones on this event (Finland time + UK time) with a toggle."],
       },
       {
         type: "layover",
-        statusBadge: "In-between",
         title: "Layover: Birmingham (BHX)",
         time: {
           local: "CALCULATE_FROM_ACTUAL_RVN_ARRIVAL_AND_20_50_DEPARTURE",
@@ -511,7 +436,6 @@ const days = [
       },
       {
         type: "flight",
-        statusBadge: "Scheduled",
         title: "Fly: Birmingham (BHX) → Dublin (DUB)",
         time: { local: "20:50", tz: "Europe/London" },
         flight: {
