@@ -40,6 +40,7 @@ const checklistSections = document.getElementById("checklist-sections");
 const searchInput = document.getElementById("search");
 
 const nowLocationEl = document.getElementById("current-location");
+const nowTimeEl = document.getElementById("current-time");
 const nextTitleEl = document.getElementById("next-title");
 const nextMetaEl = document.getElementById("next-meta");
 const shareButton = document.getElementById("share-trip");
@@ -76,6 +77,10 @@ const copyPhrasesSubmit = document.getElementById("copy-phrases-submit");
 const copyPhrasesCancel = document.getElementById("copy-phrases-cancel");
 const copyPhrasesSearch = document.getElementById("copy-phrases-search");
 const copyPhrasesFilter = document.getElementById("copy-phrases-filter");
+const tabButtons = Array.from(document.querySelectorAll(".bottom-nav__button"));
+const tabSections = Array.from(document.querySelectorAll("[data-tab-section]"));
+
+const activeTabKey = "aurora-active-tab";
 
 const defaultOutingGear = [
   "Gloves",
@@ -819,6 +824,10 @@ function buildDayJumpNav(section) {
 function updateNowNext() {
   if (!nowLocationEl || !nextTitleEl || !nextMetaEl) return;
   const { hour, minute } = getTimeParts("Europe/Helsinki");
+  const timeText = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+  if (nowTimeEl) {
+    nowTimeEl.textContent = timeText;
+  }
   const today = getDateString("Europe/Helsinki");
   const todayDay = days.find((day) => day.date === today) ?? days[0];
   nowLocationEl.textContent = todayDay?.location ?? "";
@@ -1525,6 +1534,46 @@ function setupShareAndPrint() {
   }
 }
 
+function setActiveTab(tabId, { scroll = true } = {}) {
+  if (!tabButtons.length || !tabSections.length) return;
+  const availableTabs = tabButtons.map((button) => button.dataset.tab).filter(Boolean);
+  const resolvedTab = availableTabs.includes(tabId) ? tabId : availableTabs[0];
+  if (!resolvedTab) return;
+
+  tabSections.forEach((section) => {
+    section.hidden = section.dataset.tabSection !== resolvedTab;
+  });
+
+  tabButtons.forEach((button) => {
+    const isActive = button.dataset.tab === resolvedTab;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-current", isActive ? "page" : "false");
+  });
+
+  document.body.dataset.activeTab = resolvedTab;
+  safeWriteStorage(activeTabKey, resolvedTab);
+
+  if (scroll) {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+}
+
+function setupBottomNav() {
+  if (!tabButtons.length || !tabSections.length) return;
+  const storedTab = safeReadStorage(activeTabKey);
+  setActiveTab(storedTab ?? tabButtons[0]?.dataset.tab, { scroll: false });
+
+  tabButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      setActiveTab(button.dataset.tab);
+      if (window.location.hash) {
+        const cleanUrl = `${window.location.pathname}${window.location.search}`;
+        history.replaceState(null, "", cleanUrl);
+      }
+    });
+  });
+}
+
 function setupBackToTop() {
   if (!backToTopButton) return;
   backToTopButton.addEventListener("click", () => {
@@ -1554,6 +1603,12 @@ function scrollToTarget(id) {
 function handleHashChange() {
   const hash = window.location.hash.replace("#", "");
   if (!hash) return;
+  const target = document.getElementById(hash);
+  if (!target) return;
+  const tab = target.closest("[data-tab-section]")?.dataset.tabSection;
+  if (tab) {
+    setActiveTab(tab, { scroll: false });
+  }
   requestAnimationFrame(() => scrollToTarget(hash));
 }
 
@@ -1628,6 +1683,7 @@ function init() {
   setupZoneToggle();
   updateNowNext();
   setupShareAndPrint();
+  setupBottomNav();
   setupUiToggles();
   setupDayNav();
   updateStickyOffset();
