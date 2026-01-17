@@ -31,7 +31,7 @@ function renderDashboard(container, data) {
     <div class="dashboard-grid">
       <div class="dashboard-card">
         <h3>Temp</h3>
-        <p>${formatMetric(data.temp, "°")}</p>
+        <p>${formatMetric(data.temp, "\u00B0")}</p>
       </div>
       <div class="dashboard-card">
         <h3>Cloud now</h3>
@@ -58,6 +58,7 @@ function renderDashboard(container, data) {
           .join("")}
       </div>
     </div>
+    ${data.status ? `<p class="dashboard-status">${data.status}</p>` : ""}
   `;
 }
 
@@ -109,6 +110,9 @@ async function loadDashboard(container) {
     100 * (1 - (current.cloud_cover ?? 100) / 100) * Math.min(1, Math.max(0, (kpNow ?? 0) / 6))
   );
 
+  const stale = weather.stale || kpObservedResult.stale || kpForecastResult.stale;
+  const status = stale ? "Cached data in use." : "";
+
   renderDashboard(container, {
     temp: current.temperature_2m,
     cloudNow: current.cloud_cover,
@@ -116,6 +120,7 @@ async function loadDashboard(container) {
     score,
     kpMax,
     nextHours: getNextHours(hourly, TIME_ZONE, 6),
+    status,
   });
 }
 
@@ -129,10 +134,13 @@ async function initDashboards() {
       await loadDashboard(dashboard);
     } catch (error) {
       const today = formatDateInZone(new Date(), TIME_ZONE);
+      const statusMessage = navigator.onLine
+        ? `Unable to load live data for ${today}. Check connection.`
+        : `Offline \u2014 cached data unavailable for ${today}.`;
       dashboard.innerHTML = `
         <div class="dashboard-card">
           <h3>Aurora dashboard</h3>
-          <p>Unable to load live data for ${today}. Check connection.</p>
+          <p>${statusMessage}</p>
         </div>
       `;
     }

@@ -1,0 +1,44 @@
+@media print {
+  :root {
+    color-scheme: light;
+  }
+
+  body {
+    background: #ffffff;
+    color: #000000;
+  }
+
+  .trip-hud,
+  .day-nav,
+  .hero-actions,
+  .install-toast,
+  .offline-toast,
+  .update-toast,
+  .action-toast,
+  .back-to-top {
+    display: none !important;
+  }
+
+  .page {
+    padding: 1.5rem;
+  }
+
+  .section,
+  .day-card,
+  .card,
+  .hero-card,
+  .day-section,
+  .today-card {
+    box-shadow: none;
+    border: 1px solid #ccc;
+  }
+
+  .section {
+    break-inside: avoid;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+}

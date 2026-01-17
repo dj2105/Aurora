@@ -1,26 +1,32 @@
-const CACHE_VERSION = "v2";
+const CACHE_VERSION = "v3";
 const APP_CACHE = `aurora-app-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `aurora-runtime-${CACHE_VERSION}`;
+const BASE_PATH = new URL(self.registration.scope).pathname.replace(/\/?$/, "/");
 
 const APP_SHELL = [
-  "./",
-  "./index.html",
-  "./offline.html",
-  "./styles.css",
-  "./app.js",
-  "./manifest.json",
-  "./assets/css/aurora-dashboard.css",
-  "./assets/js/aurora-dashboard.js",
-  "./assets/js/trip-hud.js",
-  "./assets/js/pwa.js",
-  "./assets/js/data-utils.js",
-  "./assets/icons/icon-192.png",
-  "./assets/icons/icon-512.png",
+  BASE_PATH,
+  `${BASE_PATH}index.html`,
+  `${BASE_PATH}offline.html`,
+  `${BASE_PATH}styles.css`,
+  `${BASE_PATH}print.css`,
+  `${BASE_PATH}app.js`,
+  `${BASE_PATH}manifest.json`,
+  `${BASE_PATH}assets/css/aurora-dashboard.css`,
+  `${BASE_PATH}assets/js/aurora-dashboard.js`,
+  `${BASE_PATH}assets/js/trip-hud.js`,
+  `${BASE_PATH}assets/js/pwa.js`,
+  `${BASE_PATH}assets/js/data-utils.js`,
+  `${BASE_PATH}assets/data/trip-data.js`,
+  `${BASE_PATH}assets/icons/icon-192.png`,
+  `${BASE_PATH}assets/icons/icon-512.png`,
 ];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(APP_CACHE).then((cache) => cache.addAll(APP_SHELL)).then(() => self.skipWaiting())
+    caches
+      .open(APP_CACHE)
+      .then((cache) => cache.addAll(APP_SHELL.map((url) => new Request(url, { cache: "reload" }))))
+      .then(() => self.skipWaiting())
   );
 });
 
@@ -35,6 +41,12 @@ self.addEventListener("activate", (event) => {
       )
       .then(() => self.clients.claim())
   );
+});
+
+self.addEventListener("message", (event) => {
+  if (event.data?.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
 });
 
 function isApiRequest(url) {
@@ -53,7 +65,7 @@ async function networkFirst(request) {
     return response;
   } catch (error) {
     const cached = await caches.match(request);
-    return cached || caches.match("./offline.html");
+    return cached || caches.match(`${BASE_PATH}offline.html`);
   }
 }
 

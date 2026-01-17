@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Aurora Trip — Offline</title>
+    <base href="/Aurora/" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -11,8 +12,37 @@
       <div class="offline-card">
         <h1>You're offline</h1>
         <p>Cached trip info is still available. Try again once you're back online.</p>
-        <a class="pill" href="./">Return to the trip</a>
+        <p class="meta" id="offline-updated">Last updated: --</p>
+        <div class="offline-actions">
+          <button class="pill" type="button" id="offline-retry">Try reload</button>
+          <a class="pill" href="./">Return to the trip</a>
+        </div>
       </div>
     </main>
+    <script>
+      (() => {
+        const updatedEl = document.getElementById("offline-updated");
+        const retryButton = document.getElementById("offline-retry");
+        const key = "aurora-last-updated";
+        if (updatedEl) {
+          try {
+            const stored = localStorage.getItem(key);
+            if (stored) {
+              const date = new Date(Number(stored));
+              if (!Number.isNaN(date.getTime())) {
+                updatedEl.textContent = `Last updated: ${date.toLocaleString()}`;
+              }
+            }
+          } catch (error) {
+            updatedEl.textContent = "Last updated: unavailable";
+          }
+        }
+        if (retryButton) {
+          retryButton.addEventListener("click", () => {
+            window.location.reload();
+          });
+        }
+      })();
+    </script>
   </body>
 </html>
