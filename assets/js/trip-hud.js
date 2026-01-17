@@ -4,7 +4,6 @@ import {
   cacheKey,
   computeTonightCloudAverage,
   fetchWithCache,
-  formatDateInZone,
   formatMetric,
   formatTimeWithZone,
   isOffline,
@@ -32,10 +31,6 @@ import {
     auroraNow: hud.querySelector("[data-role='aurora-now']"),
     auroraScore: hud.querySelector("[data-role='aurora-score']"),
     status: hud.querySelector("[data-role='hud-status']"),
-    maps: hud.querySelector("[data-action='maps']"),
-    copy: hud.querySelector("[data-action='copy']"),
-    supermarket: hud.querySelector("[data-action='supermarket']"),
-    bestChance: hud.querySelector("[data-action='best-chance']"),
   };
 
   const location = {
@@ -50,53 +45,8 @@ import {
     if (elements.timeIe) elements.timeIe.textContent = ie;
   }
 
-  function updateActionLinks() {
-    if (elements.maps) {
-      elements.maps.href = hud.dataset.baseMap ?? "#";
-    }
-    if (elements.supermarket) {
-      elements.supermarket.href = hud.dataset.supermarketMap ?? "#";
-    }
-    if (elements.bestChance) {
-      elements.bestChance.href = hud.dataset.auroraAnchor ?? "#";
-    }
-  }
-
-  async function copyAccommodation() {
-    const address = hud.dataset.accommodation;
-    if (!address || !elements.copy) return;
-    try {
-      await navigator.clipboard.writeText(address);
-      elements.copy.textContent = "Copied";
-      setTimeout(() => {
-        elements.copy.textContent = "Stay";
-      }, 2000);
-    } catch (error) {
-      elements.copy.textContent = "Copy failed";
-      setTimeout(() => {
-        elements.copy.textContent = "Stay";
-      }, 2000);
-    }
-  }
-
-  function scrollToTodaySection() {
-    const today = formatDateInZone(new Date(), TIME_ZONE);
-    const target = document.getElementById(`day-${today}-aurora`);
-    if (target) {
-      target.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }
-
   function setupInteractions() {
-    updateActionLinks();
-    if (elements.copy) {
-      elements.copy.addEventListener("click", copyAccommodation);
-    }
-    [elements.weatherNow, elements.cloudTonight, elements.auroraNow, elements.auroraScore]
-      .filter(Boolean)
-      .forEach((chip) => {
-        chip.addEventListener("click", scrollToTodaySection);
-      });
+    return;
   }
 
   function setStatus(message, isWarning = false) {
@@ -140,10 +90,12 @@ import {
       const tonightCloud = computeTonightCloudAverage(hourly, TIME_ZONE);
 
       if (elements.weatherNow) {
-        elements.weatherNow.textContent = `Temp ${formatMetric(temp, "\u00B0")} \u00B7 Cloud ${formatMetric(cloudNow, "%")}`;
+        elements.weatherNow.textContent = `Now ${formatMetric(temp, "\u00B0")} \u00B7 Cloud ${formatMetric(cloudNow, "%")}`;
       }
       if (elements.cloudTonight) {
-        elements.cloudTonight.textContent = `Tonight ${formatMetric(tonightCloud, "%")} cloud`;
+        const cloudText = formatMetric(tonightCloud, "%");
+        const tempText = formatMetric(temp, "\u00B0");
+        elements.cloudTonight.textContent = `Cloud ${cloudText} \u00B7 ${tempText}`;
       }
 
       const kpObserved = parseKpObserved(kpObservedResult.data);

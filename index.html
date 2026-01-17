@@ -11,20 +11,10 @@
     <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
     <link rel="manifest" href="manifest.json" />
     <link rel="stylesheet" href="styles.css" />
-    <link rel="stylesheet" href="assets/css/aurora-dashboard.css" />
     <link rel="stylesheet" href="print.css" media="print" />
   </head>
   <body>
-    <div
-      class="trip-hud"
-      id="trip-hud"
-      data-lat="65.845"
-      data-lon="24.187"
-      data-base-map="https://www.google.com/maps/search/?api=1&query=1409+Jokivarrentie+Tornio+Finland"
-      data-accommodation="1409 Jokivarrentie, 95520 Tornio, Finland"
-      data-supermarket-map="https://www.google.com/maps/search/?api=1&query=K-Citymarket+Tornio"
-      data-aurora-anchor="#best-chance"
-    >
+    <div class="trip-hud" id="trip-hud" data-lat="65.845" data-lon="24.187">
       <section class="trip-hud__status" aria-label="Trip status bar">
         <div class="hud-times">
           <div class="hud-time">
@@ -36,27 +26,19 @@
             <span class="hud-value" data-role="time-ie">--:--</span>
           </div>
         </div>
+        <div class="hud-tonight" aria-live="polite">
+          <p class="hud-tonight__label">Tonight weather</p>
+          <p class="hud-tonight__value" data-role="cloud-tonight">--</p>
+        </div>
         <div class="hud-chips" role="list">
-          <button class="hud-chip" type="button" data-role="weather-now">Weather --</button>
-          <button class="hud-chip" type="button" data-role="cloud-tonight">Tonight --</button>
+          <button class="hud-chip" type="button" data-role="weather-now">Now --</button>
           <button class="hud-chip" type="button" data-role="aurora-now">Kp --</button>
           <button class="hud-chip hud-chip--accent" type="button" data-role="aurora-score">Aurora --</button>
-        </div>
-        <div class="hud-actions" role="group" aria-label="Quick actions">
-          <a class="hud-action" data-action="maps" href="#" target="_blank" rel="noreferrer">
-            <span class="hud-action__icon" aria-hidden="true">🗺️</span>
-            <span class="hud-action__label">Maps</span>
-          </a>
-          <a class="hud-action" data-action="supermarket" href="#" target="_blank" rel="noreferrer">
-            <span class="hud-action__icon" aria-hidden="true">🛒</span>
-            <span class="hud-action__label">Market</span>
-          </a>
         </div>
         <p class="hud-status" data-role="hud-status"></p>
       </section>
       <nav class="day-nav" aria-label="Trip days">
         <div class="day-nav__scroll" id="timeline"></div>
-        <button class="day-nav__today" id="jump-today" type="button">Jump to today</button>
       </nav>
     </div>
 
@@ -66,49 +48,61 @@
           <h2>Now / Next</h2>
           <div class="now-next__grid">
             <div>
-              <p class="label">Location</p>
+              <p class="label">Now</p>
               <p class="value value--hero" id="current-location">Tornio</p>
             </div>
             <div>
-              <p class="label">Local time</p>
-              <p class="value value--hero value--time" id="current-time">--:--</p>
+              <p class="label">Next up</p>
+              <p class="value" id="next-title">Loading…</p>
+              <p class="meta" id="next-meta"></p>
             </div>
           </div>
-          <div class="next-card">
-            <p class="label">Next up</p>
-            <p class="value" id="next-title">Loading…</p>
-            <p class="meta" id="next-meta"></p>
-          </div>
-          <details class="time-settings">
-            <summary>Time display</summary>
-            <div class="time-settings__controls">
-              <label>
-                <span class="sr-only">Time display</span>
-                <select id="time-display">
-                  <option value="transport">Both (transport only)</option>
-                  <option value="finland">Finland</option>
-                  <option value="ireland">Ireland</option>
-                  <option value="both">Both (all events)</option>
-                </select>
-              </label>
-              <p class="meta">Default shows both time zones for transport only.</p>
-            </div>
-          </details>
         </div>
-        <div class="hero-card hero-card--intro">
-          <h1>Aurora Trip Reference</h1>
-          <p class="hero-subtitle">Fast, offline-friendly details for daily plans, maps, and aurora checks.</p>
-          <div class="hero-actions">
-            <button class="pill" type="button" id="share-trip">Share trip</button>
-            <button class="pill" type="button" id="print-trip">Print / Save PDF</button>
-          </div>
+        <div class="day-carousel" aria-label="Daily schedule carousel" id="day-carousel">
+          <div class="day-carousel__track" id="day-carousel-track"></div>
         </div>
       </section>
 
-      <section class="section tab-section" data-tab-section="settings" id="sync" aria-label="Sync across devices">
+      <section class="section tab-section" data-tab-section="bookings" id="bookings" aria-label="Bookings">
         <header class="section-header">
-          <h2>Sync across devices</h2>
-          <p>Optional Firestore sync for gear, pills, checklist, and notes. Local storage stays the default.</p>
+          <h2>Bookings</h2>
+          <p>Travel + accommodation details in date order.</p>
+        </header>
+        <div class="booking-list" id="bookings-list"></div>
+      </section>
+
+      <section class="section tab-section" data-tab-section="thingys" id="thingys" aria-label="Thingys">
+        <header class="section-header">
+          <h2>Thingys</h2>
+          <p>Equipment, belongings, and clothes in one checklist.</p>
+        </header>
+        <div class="thingys-summary" id="thingys-summary"></div>
+        <div class="thingys-list" id="thingys-list"></div>
+        <form class="thingys-add" id="thingys-add">
+          <label>
+            <span class="sr-only">Item</span>
+            <input id="thingys-input" type="text" placeholder="Add item" required />
+          </label>
+          <label>
+            <span class="sr-only">Category</span>
+            <input id="thingys-category" type="text" list="thingys-categories" placeholder="Category" required />
+            <datalist id="thingys-categories"></datalist>
+          </label>
+          <button class="pill" type="submit">+ item</button>
+        </form>
+      </section>
+
+      <section class="section tab-section" data-tab-section="tools" id="tools" aria-label="Tools">
+        <div class="card tools-card">
+          <h2>Tools</h2>
+          <p class="meta">More tools coming soon.</p>
+        </div>
+      </section>
+
+      <section class="section tab-section" data-tab-section="settings" id="sync" aria-label="Settings">
+        <header class="section-header">
+          <h2>Settings</h2>
+          <p>Sync + accessibility controls in one place.</p>
         </header>
         <div class="sync-card">
           <div class="sync-row">
@@ -152,222 +146,58 @@
           </div>
         </div>
       </section>
-
-      <section class="section tab-section" data-tab-section="home" id="key-info" aria-label="Key info">
-        <header class="section-header">
-          <h2>Key info</h2>
-          <p>Quick reference for check-in details, trains, and daily pills.</p>
-        </header>
-        <div class="grid key-info-grid">
-          <div class="card key-info-card" id="key-info-card">
-            <div class="key-info__content" id="key-info-content"></div>
-          </div>
-          <div class="card pills-panel" id="pills-panel">
-            <h3>Pills today</h3>
-            <p class="meta" id="pills-today-date"></p>
-            <div class="pills-status" id="pills-today-status"></div>
-            <div class="pills-actions">
-              <button class="pill" type="button" data-pill-reset="today">Reset today</button>
-              <button class="pill" type="button" data-pill-reset="all">Reset all</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="section tab-section" data-tab-section="home" aria-label="Search">
-        <label class="search" for="search">
-          <span>Search</span>
-          <input id="search" type="search" placeholder="Search events, bookings, addresses" />
-        </label>
-        <div id="alerts" class="alerts"></div>
-        <div class="notes-inbox" id="notes-inbox" aria-live="polite">
-          <div class="notes-inbox__header">
-            <h3>Notes Inbox</h3>
-            <p class="meta">Quick notes with no specific day.</p>
-          </div>
-          <div class="notes-inbox__list" id="notes-inbox-list"></div>
-        </div>
-      </section>
-
-      <section class="section tab-section" data-tab-section="tools" id="copy-phrases" aria-label="Copy phrases">
-        <details class="accordion">
-          <summary class="accordion__summary">
-            <div class="accordion__title">
-              <h2>Copy phrases</h2>
-              <p>Tap to copy essentials, with edits synced through Firestore when enabled.</p>
-            </div>
-            <span class="accordion__chevron" aria-hidden="true">⌄</span>
-          </summary>
-          <div class="accordion__content">
-            <div class="copy-phrases">
-              <div class="copy-phrases__controls">
-                <label class="copy-phrases__search">
-                  <span class="sr-only">Search phrases</span>
-                  <input id="copy-phrases-search" type="search" placeholder="Search phrases" />
-                </label>
-                <label>
-                  <span class="sr-only">Filter by category</span>
-                  <select id="copy-phrases-filter">
-                    <option value="all">All categories</option>
-                    <option value="places">Places</option>
-                    <option value="transport">Transport</option>
-                    <option value="shops">Shops</option>
-                    <option value="essentials">Essentials</option>
-                    <option value="custom">Custom</option>
-                  </select>
-                </label>
-              </div>
-              <form class="copy-phrases__form" id="copy-phrases-form">
-                <label>
-                  <span>Category</span>
-                  <select id="copy-phrases-category">
-                    <option value="places">Places</option>
-                    <option value="transport">Transport</option>
-                    <option value="shops">Shops</option>
-                    <option value="essentials">Essentials</option>
-                    <option value="custom">Custom</option>
-                  </select>
-                </label>
-                <label>
-                  <span>Label</span>
-                  <input id="copy-phrases-label" type="text" required />
-                </label>
-                <label>
-                  <span>Text</span>
-                  <input id="copy-phrases-text" type="text" required />
-                </label>
-                <label>
-                  <span>Open URL (optional)</span>
-                  <input id="copy-phrases-url" type="url" placeholder="https://maps.google.com/..." />
-                </label>
-                <button class="pill" type="submit" id="copy-phrases-submit">Add phrase</button>
-                <button class="pill" type="button" id="copy-phrases-cancel" hidden>Cancel edit</button>
-              </form>
-              <div class="copy-phrases__table" role="table" aria-label="Copy phrases table">
-                <div class="copy-phrases__row copy-phrases__row--header" role="row">
-                  <span role="columnheader">Label</span>
-                  <span role="columnheader">Text</span>
-                  <span role="columnheader">Actions</span>
-                </div>
-                <div class="copy-phrases__body" id="copy-phrases-body"></div>
-              </div>
-            </div>
-          </div>
-        </details>
-      </section>
-
-      <section class="section tab-section" data-tab-section="tools" id="outing-gear" aria-label="Outing gear checklist">
-        <header class="section-header">
-          <h2>Outing Gear Checklist</h2>
-          <p>Before stepping outside, tap Daniel or Jaime to confirm gear.</p>
-          <div class="section-actions">
-            <button class="pill" type="button" data-gear-reset="all">Reset all</button>
-            <button class="pill" type="button" data-gear-reset="daniel">Reset Daniel</button>
-            <button class="pill" type="button" data-gear-reset="jaime">Reset Jaime</button>
-          </div>
-        </header>
-        <form class="outing-gear__add" id="outing-gear-add">
-          <label>
-            <span class="sr-only">Add outing item</span>
-            <input id="outing-gear-input" type="text" placeholder="Add item" />
-          </label>
-          <button class="pill" type="submit">Add item</button>
-        </form>
-        <div class="outing-gear__counts" aria-live="polite">
-          <span id="outing-gear-count-daniel">Daniel 0/0</span>
-          <span id="outing-gear-count-jaime">Jaime 0/0</span>
-        </div>
-        <div class="outing-gear__table" role="table" aria-label="Outing gear checklist table">
-          <div class="outing-gear__row outing-gear__row--header" role="row">
-            <span role="columnheader">Item</span>
-            <span role="columnheader">Daniel</span>
-            <span role="columnheader">Jaime</span>
-          </div>
-          <div class="outing-gear__body" id="outing-gear-body"></div>
-        </div>
-      </section>
-
-      <section class="section tab-section" data-tab-section="plan" id="days" aria-label="Trip days">
-        <header class="section-header">
-          <h2>Daily plan</h2>
-          <p>Tap a day chip above to jump to that section.</p>
-        </header>
-        <div class="day-list" id="days-list"></div>
-      </section>
-
-      <section class="section tab-section" data-tab-section="home" id="best-chance" aria-label="Best aurora chance">
-        <header class="section-header">
-          <h2>Best chance tonight</h2>
-          <p>Check cloud cover first. If clear, step outside hourly.</p>
-        </header>
-        <div class="live-dashboard" data-day="2026-01-21"></div>
-      </section>
-
-      <section class="section tab-section" data-tab-section="plan" id="bookings" aria-label="Bookings and documents">
-        <details class="accordion">
-          <summary class="accordion__summary">
-            <div class="accordion__title">
-              <h2>Bookings</h2>
-              <p>Quick references for transport, stays, and confirmations.</p>
-            </div>
-            <span class="accordion__chevron" aria-hidden="true">⌄</span>
-          </summary>
-          <div class="accordion__content">
-            <div class="grid" id="bookings-grid"></div>
-          </div>
-        </details>
-      </section>
-
-      <section class="section tab-section" data-tab-section="tools" id="maps" aria-label="Maps hub">
-        <details class="accordion">
-          <summary class="accordion__summary">
-            <div class="accordion__title">
-              <h2>Maps</h2>
-              <p>Open each location in Google Maps in one tap.</p>
-            </div>
-            <span class="accordion__chevron" aria-hidden="true">⌄</span>
-          </summary>
-          <div class="accordion__content">
-            <div class="grid" id="maps-grid"></div>
-          </div>
-        </details>
-      </section>
-
-      <section class="section tab-section" data-tab-section="tools" id="checklist" aria-label="Checklist">
-        <header class="section-header">
-          <h2>Checklist</h2>
-          <p>Tap to tick off items. Saved locally for offline use.</p>
-          <div class="section-actions">
-            <button class="pill" type="button" id="export-checklist">Export checklist</button>
-            <button class="pill" type="button" id="import-checklist">Import checklist</button>
-            <input type="file" id="import-checklist-input" accept="application/json" hidden />
-          </div>
-          <p class="section-note" id="checklist-note" role="status" aria-live="polite"></p>
-        </header>
-        <div class="checklist" id="checklist-sections"></div>
-      </section>
-
     </main>
 
-    <button class="fab" id="add-item-fab" type="button" aria-label="Add item">
-      <span aria-hidden="true">+</span>
-    </button>
+    <div class="modal" id="event-detail-modal" role="dialog" aria-modal="true" aria-labelledby="event-detail-title" hidden>
+      <div class="modal__panel">
+        <div class="modal__header">
+          <h2 id="event-detail-title">Event details</h2>
+          <button class="modal__close" id="event-detail-close" type="button" aria-label="Close event detail">
+            ✕
+          </button>
+        </div>
+        <div class="event-detail" id="event-detail-body"></div>
+      </div>
+    </div>
+
+    <div class="modal" id="copy-sheet-modal" role="dialog" aria-modal="true" aria-labelledby="copy-sheet-title" hidden>
+      <div class="modal__panel">
+        <div class="modal__header">
+          <h2 id="copy-sheet-title">Copy details</h2>
+          <button class="modal__close" id="copy-sheet-close" type="button" aria-label="Close copy sheet">
+            ✕
+          </button>
+        </div>
+        <p class="meta" id="copy-sheet-subtitle"></p>
+        <div class="copy-sheet__list" id="copy-sheet-list"></div>
+        <form class="copy-sheet__form" id="copy-sheet-form">
+          <label>
+            <span>Label</span>
+            <input id="copy-sheet-label" type="text" required />
+          </label>
+          <label>
+            <span>Text</span>
+            <input id="copy-sheet-text" type="text" required />
+          </label>
+          <button class="pill" type="submit" id="copy-sheet-submit">Add phrase</button>
+          <button class="pill" type="button" id="copy-sheet-cancel" hidden>Cancel edit</button>
+        </form>
+      </div>
+    </div>
 
     <div class="modal" id="add-item-modal" role="dialog" aria-modal="true" aria-labelledby="add-item-title" hidden>
       <div class="modal__panel">
         <div class="modal__header">
-          <h2 id="add-item-title">Add item</h2>
-          <button class="modal__close" id="add-item-close" type="button" aria-label="Close add item">
+          <h2 id="add-item-title">Add event</h2>
+          <button class="modal__close" id="add-item-close" type="button" aria-label="Close add event">
             ✕
           </button>
         </div>
-        <p class="meta">Add a new event or note without editing the trip file.</p>
+        <p class="meta">Add a new event without editing the trip file.</p>
         <form class="add-item" id="user-item-form">
           <label>
             <span>Day</span>
-            <select id="user-item-day" name="day">
-              <option value="">No specific day</option>
-            </select>
+            <select id="user-item-day" name="day" required></select>
           </label>
           <label>
             <span>Time (optional)</span>
@@ -392,19 +222,19 @@
               <option value="note">Note</option>
             </select>
           </label>
-          <button class="pill" type="submit">Add</button>
+          <button class="pill" type="submit">Add event</button>
         </form>
       </div>
     </div>
 
     <nav class="bottom-nav" aria-label="Primary">
-      <button class="bottom-nav__button is-active" type="button" data-tab="home">
-        <span class="bottom-nav__icon" aria-hidden="true">🏠</span>
-        <span class="bottom-nav__label">Home</span>
+      <button class="bottom-nav__button" type="button" data-tab="bookings">
+        <span class="bottom-nav__icon" aria-hidden="true">🧳</span>
+        <span class="bottom-nav__label">Bookings</span>
       </button>
-      <button class="bottom-nav__button" type="button" data-tab="plan">
-        <span class="bottom-nav__icon" aria-hidden="true">🗓️</span>
-        <span class="bottom-nav__label">Plan</span>
+      <button class="bottom-nav__button" type="button" data-tab="thingys">
+        <span class="bottom-nav__icon" aria-hidden="true">✅</span>
+        <span class="bottom-nav__label">Thingys</span>
       </button>
       <button class="bottom-nav__button" type="button" data-tab="tools">
         <span class="bottom-nav__icon" aria-hidden="true">🧰</span>
@@ -420,14 +250,10 @@
     <div class="offline-toast" id="offline-toast" role="status" aria-live="polite" hidden></div>
     <div class="update-toast" id="update-toast" role="status" aria-live="polite" hidden></div>
     <div class="action-toast" id="action-toast" role="status" aria-live="polite" hidden></div>
-    <button class="back-to-top" id="back-to-top" type="button" aria-label="Back to top" hidden>
-      Back to top
-    </button>
 
     <script src="firebase-config.js"></script>
     <script type="module" src="app.js"></script>
     <script type="module" src="assets/js/sync.js"></script>
-    <script type="module" src="assets/js/aurora-dashboard.js"></script>
     <script type="module" src="assets/js/trip-hud.js"></script>
     <script type="module" src="assets/js/pwa.js"></script>
   </body>
