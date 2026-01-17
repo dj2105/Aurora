@@ -27,7 +27,7 @@ function buildWeatherUrl(location) {
     current: "temperature_2m,wind_speed_10m,cloud_cover",
     hourly: "temperature_2m,cloud_cover,precipitation_probability,wind_speed_10m,wind_gusts_10m",
     timezone: TIME_ZONE,
-    forecast_days: 2,
+    forecast_days: 7,
   });
   return `https://api.open-meteo.com/v1/forecast?${params}`;
 }
@@ -170,6 +170,58 @@ function computeTonightCloudAverage(hourly, timeZone = TIME_ZONE) {
   return sum / values.length;
 }
 
+function getNextDateString(dateString, timeZone = TIME_ZONE) {
+  if (!dateString) return null;
+  const [year, month, day] = dateString.split("-").map((part) => Number.parseInt(part, 10));
+  if ([year, month, day].some((value) => Number.isNaN(value))) return null;
+  const start = new Date(Date.UTC(year, month - 1, day));
+  const next = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+  return formatDateInZone(next, timeZone);
+}
+
+function computeNightCloudAverageForDate(hourly, targetDateStr, timeZone = TIME_ZONE) {
+  if (!hourly?.time || !hourly?.cloud_cover || !targetDateStr) return null;
+  const nextDay = getNextDateString(targetDateStr, timeZone);
+  if (!nextDay) return null;
+  const values = [];
+
+  hourly.time.forEach((time, index) => {
+    const [date, hourPart] = time.split("T");
+    const hour = Number.parseInt(hourPart?.slice(0, 2), 10);
+    if (Number.isNaN(hour)) return;
+    if (date === targetDateStr && hour >= 20 && hour <= 23) {
+      values.push(hourly.cloud_cover[index]);
+    }
+    if (date === nextDay && hour >= 0 && hour <= 2) {
+      values.push(hourly.cloud_cover[index]);
+    }
+  });
+
+  if (!values.length) return null;
+  const sum = values.reduce((total, value) => total + value, 0);
+  return sum / values.length;
+}
+
+function getNightHoursForDate(hourly, targetDateStr, timeZone = TIME_ZONE) {
+  if (!hourly?.time || !targetDateStr) return [];
+  const nextDay = getNextDateString(targetDateStr, timeZone);
+  if (!nextDay) return [];
+  const timeIndexMap = new Map();
+  hourly.time.forEach((time, index) => {
+    timeIndexMap.set(time, index);
+  });
+  const hours = [20, 21, 22, 23, 0, 1, 2];
+  return hours.map((hour) => {
+    const date = hour >= 20 ? targetDateStr : nextDay;
+    const key = `${date}T${String(hour).padStart(2, "0")}:00`;
+    const index = timeIndexMap.get(key);
+    return {
+      time: key,
+      cloud: index === undefined ? null : hourly.cloud_cover?.[index],
+    };
+  });
+}
+
 function getNextHours(hourly, timeZone = TIME_ZONE, count = 12) {
   if (!hourly?.time) return [];
   const now = new Date();
@@ -228,6 +280,8 @@ export {
   parseKpObserved,
   parseKpForecastMax,
   computeTonightCloudAverage,
+  computeNightCloudAverageForDate,
+  getNightHoursForDate,
   getNextHours,
   formatMetric,
   scoreLabel,

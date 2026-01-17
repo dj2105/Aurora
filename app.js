@@ -37,6 +37,8 @@ const actionToast = document.getElementById("action-toast");
 const outingGearBody = document.getElementById("outing-gear-body");
 const outingGearForm = document.getElementById("outing-gear-add");
 const outingGearInput = document.getElementById("outing-gear-input");
+const outingGearCountDaniel = document.getElementById("outing-gear-count-daniel");
+const outingGearCountJaime = document.getElementById("outing-gear-count-jaime");
 const addItemForm = document.getElementById("user-item-form");
 const addItemDay = document.getElementById("user-item-day");
 const addItemTime = document.getElementById("user-item-time");
@@ -267,6 +269,17 @@ function renderOutingGear() {
     `;
     outingGearBody.appendChild(row);
   });
+
+  updateOutingGearCounts();
+}
+
+function updateOutingGearCounts() {
+  if (!outingGearCountDaniel || !outingGearCountJaime || !outingGearState) return;
+  const total = outingGearState.items.length;
+  const danielDone = outingGearState.items.filter((item) => item.checks.daniel).length;
+  const jaimeDone = outingGearState.items.filter((item) => item.checks.jaime).length;
+  outingGearCountDaniel.textContent = `Daniel: ${danielDone}/${total}`;
+  outingGearCountJaime.textContent = `Jaime: ${jaimeDone}/${total}`;
 }
 
 function renderNotesInbox() {

@@ -9,12 +9,9 @@ import {
   formatTimeWithZone,
   formatDateInZone,
   parseKpObserved,
-  parseKpForecastMax,
-  computeTonightCloudAverage,
-  getNextHours,
+  computeNightCloudAverageForDate,
+  getNightHoursForDate,
   formatMetric,
-  scoreLabel,
-  scoreTier,
 } from "./data-utils.js";
 
 const DEFAULT_LOCATION = {
@@ -26,38 +23,107 @@ const DEFAULT_LOCATION = {
 const WEATHER_TTL = 10 * 60 * 1000;
 const KP_TTL = 5 * 60 * 1000;
 
+function formatDayLabel(dateString) {
+  if (!dateString) return "";
+  const date = new Date(`${dateString}T12:00:00`);
+  const weekday = new Intl.DateTimeFormat("en-GB", {
+    timeZone: TIME_ZONE,
+    weekday: "short",
+  }).format(date);
+  return `${weekday} ${dateString}`;
+}
+
+function getDateHourParts(date, timeZone) {
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    hour12: false,
+  });
+  const parts = formatter.formatToParts(date);
+  const year = parts.find((part) => part.type === "year")?.value;
+  const month = parts.find((part) => part.type === "month")?.value;
+  const day = parts.find((part) => part.type === "day")?.value;
+  const hour = parts.find((part) => part.type === "hour")?.value;
+  if (!year || !month || !day || !hour) return null;
+  return { date: `${year}-${month}-${day}`, hour: Number.parseInt(hour, 10) };
+}
+
+function getNextDateString(dateString) {
+  if (!dateString) return null;
+  const [year, month, day] = dateString.split("-").map((part) => Number.parseInt(part, 10));
+  if ([year, month, day].some((value) => Number.isNaN(value))) return null;
+  const start = new Date(Date.UTC(year, month - 1, day));
+  const next = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+  return formatDateInZone(next, TIME_ZONE);
+}
+
+function computeKpForecastMaxForNight(data, targetDateStr) {
+  if (!Array.isArray(data) || data.length < 2 || !targetDateStr) return null;
+  const nextDay = getNextDateString(targetDateStr);
+  if (!nextDay) return null;
+  let max = null;
+  data.slice(1).forEach((row) => {
+    const timestamp = row[0];
+    const kp = Number.parseFloat(row[1]);
+    if (!timestamp || Number.isNaN(kp)) return;
+    const time = new Date(timestamp);
+    if (Number.isNaN(time.getTime())) return;
+    const parts = getDateHourParts(time, TIME_ZONE);
+    if (!parts) return;
+    const isTargetNight = parts.date === targetDateStr && parts.hour >= 20 && parts.hour <= 23;
+    const isNextNight = parts.date === nextDay && parts.hour >= 0 && parts.hour <= 2;
+    if (isTargetNight || isNextNight) {
+      max = max === null ? kp : Math.max(max, kp);
+    }
+  });
+  return max;
+}
+
 function renderDashboard(container, data) {
   container.innerHTML = `
+    <header class="dashboard-header">
+      <p class="dashboard-eyebrow">Aurora outlook</p>
+      <h3 class="dashboard-title">${data.title}</h3>
+      <p class="dashboard-sub">${data.localTime}</p>
+    </header>
     <div class="dashboard-grid">
       <div class="dashboard-card">
-        <h3>Temp</h3>
-        <p>${formatMetric(data.temp, "\u00B0")}</p>
+        <h3>Night cloud</h3>
+        <p>${formatMetric(data.cloudNight, "%")}</p>
       </div>
       <div class="dashboard-card">
-        <h3>Cloud now</h3>
-        <p>${formatMetric(data.cloudNow, "%")}</p>
+        <h3>Kp observed now</h3>
+        <p>${formatMetric(data.kpObserved, "")}</p>
       </div>
       <div class="dashboard-card">
-        <h3>Tonight cloud</h3>
-        <p>${formatMetric(data.cloudTonight, "%")}</p>
-      </div>
-      <div class="dashboard-card">
-        <h3>Aurora score</h3>
-        <p class="dashboard-score" data-tier="${scoreTier(data.score)}">${data.score}</p>
-        <p>${scoreLabel(data.score)}</p>
+        <h3>Kp forecast (night)</h3>
+        <p>${formatMetric(data.kpForecastNight, "")}</p>
       </div>
     </div>
-    <div class="dashboard-card">
-      <h3>Next hours (cloud)</h3>
-      <div class="dashboard-hours">
-        ${data.nextHours
-          .map((hour) => {
-            const time = formatTimeWithZone(new Date(hour.time), TIME_ZONE).time;
-            return `<span><strong>${time}</strong><span>${formatMetric(hour.cloud, "%")}</span></span>`;
-          })
-          .join("")}
-      </div>
-    </div>
+    ${
+      data.nightAvailable
+        ? `<div class="dashboard-card">
+          <h3>Night cloud timeline</h3>
+          <div class="dashboard-timeline" role="list">
+            ${data.nightHours
+              .map((hour) => {
+                const hourLabel = hour.time.slice(11, 13);
+                const cloud = Math.min(100, Math.max(0, hour.cloud ?? 0));
+                return `
+                  <div class="dashboard-hour" role="listitem">
+                    <span class="dashboard-bar" style="--cloud: ${cloud}"></span>
+                    <span class="dashboard-hour-label">${hourLabel}</span>
+                  </div>
+                `;
+              })
+              .join("")}
+          </div>
+        </div>`
+        : ""
+    }
     ${data.status ? `<p class="dashboard-status">${data.status}</p>` : ""}
   `;
 }
@@ -80,9 +146,11 @@ async function loadDashboard(container) {
   const day = container.dataset.day;
   const locationQuery = container.dataset.location;
   const location = await resolveLocation(locationQuery);
+  const dayDate = day || formatDateInZone(new Date(), TIME_ZONE);
+  const dayLabel = formatDayLabel(dayDate);
 
   const weather = await fetchWithCache({
-    key: cacheKey(`dashboard-weather-${day ?? ""}`, location),
+    key: cacheKey("dashboard-weather", location),
     url: buildWeatherUrl(location),
     ttl: WEATHER_TTL,
   });
@@ -99,27 +167,32 @@ async function loadDashboard(container) {
     ttl: KP_TTL,
   });
 
-  const current = weather.data?.current ?? {};
   const hourly = weather.data?.hourly ?? {};
-  const cloudTonight = computeTonightCloudAverage(hourly, TIME_ZONE);
+  const cloudNight = computeNightCloudAverageForDate(hourly, dayDate, TIME_ZONE);
+  const nightHours = getNightHoursForDate(hourly, dayDate, TIME_ZONE);
+  const nightAvailable =
+    nightHours.length > 0 && nightHours.every((hour) => hour.cloud !== null && hour.cloud !== undefined);
   const kpObserved = parseKpObserved(kpObservedResult.data);
-  const kpMax = parseKpForecastMax(kpForecastResult.data, 12);
-  const kpNow = kpObserved?.kp ?? null;
-
-  const score = Math.round(
-    100 * (1 - (current.cloud_cover ?? 100) / 100) * Math.min(1, Math.max(0, (kpNow ?? 0) / 6))
-  );
+  const kpMaxNight = computeKpForecastMaxForNight(kpForecastResult.data, dayDate);
 
   const stale = weather.stale || kpObservedResult.stale || kpForecastResult.stale;
-  const status = stale ? "Cached data in use." : "";
+  const statusParts = [];
+  if (!nightAvailable) {
+    statusParts.push("Forecast not available yet for this date.");
+  }
+  if (stale) {
+    statusParts.push("Cached data in use.");
+  }
+  const status = statusParts.join(" ");
 
   renderDashboard(container, {
-    temp: current.temperature_2m,
-    cloudNow: current.cloud_cover,
-    cloudTonight,
-    score,
-    kpMax,
-    nextHours: getNextHours(hourly, TIME_ZONE, 6),
+    title: `${location.name} \u2014 ${dayLabel}`,
+    localTime: `Local time: ${formatTimeWithZone(new Date(), TIME_ZONE).time}`,
+    cloudNight,
+    nightHours,
+    nightAvailable,
+    kpObserved: kpObserved?.kp ?? null,
+    kpForecastNight: kpMaxNight,
     status,
   });
 }
