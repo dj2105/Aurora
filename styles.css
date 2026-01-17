@@ -264,7 +264,7 @@ html {
 
 .now-next__grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
   gap: var(--space-sm);
   margin-bottom: var(--space-sm);
 }
@@ -296,27 +296,130 @@ html {
   font-size: 0.85rem;
 }
 
-.zone-toggle {
-  display: flex;
-  gap: var(--space-xs);
-  margin-top: var(--space-sm);
+.pill--small {
+  padding: 0.25rem 0.6rem;
+  font-size: 0.7rem;
 }
 
-.zone-toggle__button {
-  flex: 1;
-  padding: 0.35rem 0.6rem;
-  border-radius: var(--radius-pill);
+.time-settings {
+  margin-top: var(--space-sm);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--border);
+  padding: var(--space-sm);
+}
+
+.time-settings summary {
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.time-settings__controls {
+  display: grid;
+  gap: var(--space-xs);
+  margin-top: var(--space-xs);
+}
+
+.time-settings select {
+  width: 100%;
+  padding: 0.4rem 0.6rem;
+  border-radius: var(--radius-md);
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text);
-  font-size: 0.75rem;
-  cursor: pointer;
+  font-size: 0.8rem;
 }
 
-.zone-toggle__button.is-active {
-  background: var(--accent-surface);
-  border-color: transparent;
-  color: var(--accent-text);
+.copy-phrases {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.copy-phrases__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.copy-phrases__controls input,
+.copy-phrases__controls select,
+.copy-phrases__form input,
+.copy-phrases__form select {
+  padding: 0.4rem 0.6rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+}
+
+.copy-phrases__search {
+  flex: 1 1 220px;
+}
+
+.copy-phrases__form {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.copy-phrases__table {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.copy-phrases__row {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) minmax(0, 2fr) minmax(120px, 1fr);
+  gap: var(--space-sm);
+  padding: var(--space-sm);
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+}
+
+.copy-phrases__row:last-child {
+  border-bottom: none;
+}
+
+.copy-phrases__row--header {
+  background: var(--surface-strong);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.copy-phrases__row--empty {
+  grid-template-columns: 1fr;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.copy-phrases__label {
+  margin: 0;
+  font-weight: 600;
+}
+
+.copy-phrases__category {
+  margin: 0.2rem 0 0;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.copy-phrases__text {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.copy-phrases__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  justify-content: flex-start;
 }
 
 .section {
@@ -934,10 +1037,6 @@ html {
   height: 1rem;
 }
 
-.emergency-grid {
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-}
-
 .install-toast,
 .offline-toast,
 .update-toast,
@@ -998,36 +1097,6 @@ html {
   margin-top: var(--space-sm);
 }
 
-.today-card {
-  background: var(--surface);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border);
-  padding: var(--space-md);
-  display: grid;
-  gap: var(--space-md);
-  margin-top: var(--space-md);
-}
-
-.today-card__header {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-sm);
-}
-
-.today-card__list {
-  margin: 0;
-  padding-left: 1rem;
-  display: grid;
-  gap: 0.35rem;
-  color: var(--text-muted);
-  font-size: 0.9rem;
-}
-
-.today-card__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-xs);
-}
 
 .back-to-top {
   position: fixed;
@@ -1081,8 +1150,12 @@ html {
     padding: 0.3rem 0.6rem;
   }
 
-  .today-card__header {
+  .copy-phrases__row {
     grid-template-columns: 1fr;
+  }
+
+  .copy-phrases__actions {
+    justify-content: flex-start;
   }
 
   .day-nav {
