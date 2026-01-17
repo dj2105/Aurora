@@ -14,7 +14,6 @@ const days = [
         icon: "plane",
       },
       {
-        time: "18:00",
         title: "Grocery run",
         detail: "Grab dinners + snacks for the week.",
         type: "food",
@@ -113,7 +112,6 @@ const days = [
     timeZone: "Europe/Helsinki",
     events: [
       {
-        time: "12:00",
         title: "Supermarket top-up",
         detail: "Grab snacks + hot drinks for late night.",
         type: "food",

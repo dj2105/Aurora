@@ -32,7 +32,7 @@
             <span class="hud-value" data-role="time-fi">--:--</span>
           </div>
           <div class="hud-time">
-            <span class="hud-label">Dublin</span>
+            <span class="hud-label">Ireland</span>
             <span class="hud-value" data-role="time-ie">--:--</span>
           </div>
         </div>
@@ -112,6 +112,79 @@
           <input id="search" type="search" placeholder="Search events, bookings, addresses" />
         </label>
         <div id="alerts" class="alerts"></div>
+        <div class="notes-inbox" id="notes-inbox" aria-live="polite">
+          <div class="notes-inbox__header">
+            <h3>Notes Inbox</h3>
+            <p class="meta">Quick notes with no specific day.</p>
+          </div>
+          <div class="notes-inbox__list" id="notes-inbox-list"></div>
+        </div>
+      </section>
+
+      <section class="section" id="add-item" aria-label="Add trip item">
+        <header class="section-header">
+          <h2>Add item</h2>
+          <p>Add a new event or note without editing the trip file.</p>
+        </header>
+        <form class="add-item" id="user-item-form">
+          <label>
+            <span>Day</span>
+            <select id="user-item-day" name="day">
+              <option value="">No specific day</option>
+            </select>
+          </label>
+          <label>
+            <span>Time (optional)</span>
+            <input id="user-item-time" name="time" type="time" />
+          </label>
+          <label>
+            <span>Title</span>
+            <input id="user-item-title" name="title" type="text" required />
+          </label>
+          <label>
+            <span>Detail (optional)</span>
+            <input id="user-item-detail" name="detail" type="text" />
+          </label>
+          <label>
+            <span>Type</span>
+            <select id="user-item-type" name="type">
+              <option value="">Pick type (optional)</option>
+              <option value="transport">Transport</option>
+              <option value="food">Food</option>
+              <option value="activity">Activity</option>
+              <option value="logistics">Logistics</option>
+              <option value="note">Note</option>
+            </select>
+          </label>
+          <button class="pill" type="submit">Add</button>
+        </form>
+      </section>
+
+      <section class="section" id="outing-gear" aria-label="Outing gear checklist">
+        <header class="section-header">
+          <h2>Outing Gear Checklist</h2>
+          <p>Before stepping outside, tap Daniel or Jaime to confirm gear.</p>
+          <div class="section-actions">
+            <button class="pill" type="button" data-gear-reset="all">Reset all</button>
+            <button class="pill" type="button" data-gear-reset="daniel">Reset Daniel</button>
+            <button class="pill" type="button" data-gear-reset="jaime">Reset Jaime</button>
+          </div>
+        </header>
+        <form class="outing-gear__add" id="outing-gear-add">
+          <label>
+            <span class="sr-only">Add outing item</span>
+            <input id="outing-gear-input" type="text" placeholder="Add item" />
+          </label>
+          <button class="pill" type="submit">Add item</button>
+        </form>
+        <div class="outing-gear__table" role="table" aria-label="Outing gear checklist table">
+          <div class="outing-gear__row outing-gear__row--header" role="row">
+            <span role="columnheader">Item</span>
+            <span role="columnheader">Daniel</span>
+            <span role="columnheader">Jaime</span>
+          </div>
+          <div class="outing-gear__body" id="outing-gear-body"></div>
+        </div>
       </section>
 
       <section class="section" id="today" aria-label="Today plan">

@@ -1,9 +1,13 @@
 import { bookings, checklist, days, maps } from "./assets/data/trip-data.js";
 
 const storageKey = "aurora-checklist";
+const outingGearKey = "aurora-outing-gear-v1";
+const userItemsKey = "aurora-user-items-v1";
 const LAST_UPDATED_KEY = "aurora-last-updated";
 let displayZone = "local";
 let dayObserver;
+let outingGearState = null;
+let userItems = [];
 
 const timelineEl = document.getElementById("timeline");
 const daysEl = document.getElementById("days-list");
@@ -30,6 +34,36 @@ const importChecklistButton = document.getElementById("import-checklist");
 const importChecklistInput = document.getElementById("import-checklist-input");
 const backToTopButton = document.getElementById("back-to-top");
 const actionToast = document.getElementById("action-toast");
+const outingGearBody = document.getElementById("outing-gear-body");
+const outingGearForm = document.getElementById("outing-gear-add");
+const outingGearInput = document.getElementById("outing-gear-input");
+const addItemForm = document.getElementById("user-item-form");
+const addItemDay = document.getElementById("user-item-day");
+const addItemTime = document.getElementById("user-item-time");
+const addItemTitle = document.getElementById("user-item-title");
+const addItemDetail = document.getElementById("user-item-detail");
+const addItemType = document.getElementById("user-item-type");
+const notesInboxList = document.getElementById("notes-inbox-list");
+
+const defaultOutingGear = [
+  "Gloves",
+  "Hat",
+  "Neck gaiter",
+  "Hand warmers",
+  "Torch",
+  "Phone",
+  "Power bank",
+  "Earphones",
+  "Sunglasses",
+  "Snacks / lunch",
+  "Water",
+  "Cash",
+  "Passport(s)",
+  "Lip balm",
+  "Vape",
+  "Tobacco",
+  "Keys",
+];
 
 function safeReadStorage(key) {
   try {
@@ -47,6 +81,82 @@ function safeWriteStorage(key, value) {
   }
 }
 
+function createDefaultOutingState() {
+  return {
+    items: defaultOutingGear.map((label) => ({
+      label,
+      checks: { daniel: false, jaime: false },
+    })),
+  };
+}
+
+function loadOutingGear() {
+  const stored = safeReadStorage(outingGearKey);
+  if (!stored) {
+    const initial = createDefaultOutingState();
+    safeWriteStorage(outingGearKey, JSON.stringify(initial));
+    return initial;
+  }
+  try {
+    const parsed = JSON.parse(stored);
+    if (!parsed?.items || !Array.isArray(parsed.items)) {
+      throw new Error("Invalid outing gear data");
+    }
+    return {
+      items: parsed.items
+        .filter((item) => typeof item?.label === "string")
+        .map((item) => ({
+          label: item.label,
+          checks: {
+            daniel: Boolean(item?.checks?.daniel),
+            jaime: Boolean(item?.checks?.jaime),
+          },
+        })),
+    };
+  } catch (error) {
+    const fallback = createDefaultOutingState();
+    safeWriteStorage(outingGearKey, JSON.stringify(fallback));
+    return fallback;
+  }
+}
+
+function saveOutingGear() {
+  if (!outingGearState) return;
+  safeWriteStorage(outingGearKey, JSON.stringify(outingGearState));
+}
+
+function loadUserItems() {
+  const stored = safeReadStorage(userItemsKey);
+  if (!stored) return [];
+  try {
+    const parsed = JSON.parse(stored);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter((item) => item && typeof item.title === "string")
+      .map((item) => ({
+        id: item.id,
+        day: item.day ?? null,
+        time: item.time ?? null,
+        title: item.title,
+        detail: item.detail ?? "",
+        type: item.type ?? "",
+        createdAt: item.createdAt ?? Date.now(),
+      }));
+  } catch (error) {
+    return [];
+  }
+}
+
+function saveUserItems() {
+  safeWriteStorage(userItemsKey, JSON.stringify(userItems));
+}
+
+function parseTimeToMinutes(time) {
+  if (!time) return null;
+  const [hours, minutes] = time.split(":").map((part) => Number.parseInt(part, 10));
+  if (Number.isNaN(hours) || Number.isNaN(minutes)) return null;
+  return hours * 60 + minutes;
+}
 function getTimeParts(timeZone) {
   const formatter = new Intl.DateTimeFormat("en-GB", {
     timeZone,
@@ -70,6 +180,7 @@ function getDateString(timeZone) {
 }
 
 function formatEventTime(event) {
+  if (!event?.time) return "";
   if (displayZone === "home") {
     return event.home_time ? `${event.home_time} Home` : "\u2014";
   }
@@ -94,6 +205,93 @@ function renderTimeline() {
       link.classList.add("is-today");
     }
     timelineEl.appendChild(link);
+  });
+}
+
+function getMergedEvents(day) {
+  const baseEvents = (day.events ?? []).map((event, index) => ({
+    ...event,
+    source: "base",
+    order: index,
+  }));
+  const userEvents = userItems
+    .filter((item) => item.day === day.date)
+    .map((item) => ({
+      time: item.time || null,
+      title: item.title,
+      detail: item.detail,
+      type: item.type,
+      source: "user",
+      id: item.id,
+      order: item.createdAt ?? 0,
+    }));
+
+  const combined = [...baseEvents, ...userEvents];
+  const scheduled = combined
+    .filter((event) => event.time)
+    .sort((a, b) => {
+      const aMinutes = parseTimeToMinutes(a.time);
+      const bMinutes = parseTimeToMinutes(b.time);
+      if (aMinutes === null && bMinutes === null) return a.order - b.order;
+      if (aMinutes === null) return 1;
+      if (bMinutes === null) return -1;
+      return aMinutes - bMinutes;
+    });
+  const unscheduled = combined
+    .filter((event) => !event.time)
+    .sort((a, b) => a.order - b.order);
+  return [...scheduled, ...unscheduled];
+}
+
+function renderOutingGear() {
+  if (!outingGearBody) return;
+  outingGearBody.innerHTML = "";
+
+  outingGearState.items.forEach((item, index) => {
+    const row = document.createElement("div");
+    row.className = "outing-gear__row";
+    row.dataset.index = String(index);
+    row.innerHTML = `
+      <div class="outing-gear__item">
+        <span>${item.label}</span>
+        <button class="outing-gear__remove" type="button" data-gear-remove="${index}" aria-label="Remove ${item.label}">
+          &times;
+        </button>
+      </div>
+      <button class="gear-toggle ${item.checks.daniel ? "is-active" : ""}" type="button" data-gear-toggle="daniel" data-index="${index}" aria-pressed="${item.checks.daniel}">
+        Daniel
+      </button>
+      <button class="gear-toggle ${item.checks.jaime ? "is-active" : ""}" type="button" data-gear-toggle="jaime" data-index="${index}" aria-pressed="${item.checks.jaime}">
+        Jaime
+      </button>
+    `;
+    outingGearBody.appendChild(row);
+  });
+}
+
+function renderNotesInbox() {
+  if (!notesInboxList) return;
+  notesInboxList.innerHTML = "";
+  const notes = userItems.filter((item) => !item.day);
+  if (!notes.length) {
+    const empty = document.createElement("p");
+    empty.className = "notes-inbox__empty";
+    empty.textContent = "No notes yet.";
+    notesInboxList.appendChild(empty);
+    return;
+  }
+  notes.forEach((note) => {
+    const card = document.createElement("div");
+    card.className = "notes-card searchable";
+    card.dataset.search = `${note.title} ${note.detail}`.toLowerCase();
+    card.innerHTML = `
+      <div class="notes-card__header">
+        <h4>${note.title}</h4>
+        <button type="button" data-user-remove="${note.id}">Remove</button>
+      </div>
+      ${note.detail ? `<p>${note.detail}</p>` : ""}
+    `;
+    notesInboxList.appendChild(card);
   });
 }
 
@@ -127,16 +325,22 @@ function renderDays() {
     `;
 
     const eventList = scheduleSection.querySelector(".event-list");
-    if (!day.events.length) {
+    const mergedEvents = getMergedEvents(day);
+    if (!mergedEvents.length) {
       eventList.innerHTML = `<p class="note">No scheduled events yet.</p>`;
     } else {
-      day.events.forEach((event) => {
+      mergedEvents.forEach((event) => {
         const eventEl = document.createElement("div");
-        eventEl.className = "event searchable";
-        eventEl.dataset.search = `${event.title} ${event.detail} ${day.location}`.toLowerCase();
+        const isScheduled = Boolean(event.time);
+        eventEl.className = `event searchable${isScheduled ? "" : " event--unscheduled"}`;
+        const detailText = event.detail ?? "";
+        eventEl.dataset.search = `${event.title} ${detailText} ${day.location}`.toLowerCase();
+        if (event.source === "user") {
+          eventEl.dataset.userId = event.id;
+        }
 
-        const timeText = formatEventTime(event);
-        const timeLines = timeText.split("\n");
+        const timeText = isScheduled ? formatEventTime(event) : "";
+        const timeLines = timeText ? timeText.split("\n") : [];
         const timeHtml = timeLines
           .map((line, index) => (index === 0 ? line : `<span>${line}</span>`))
           .join("");
@@ -152,12 +356,16 @@ function renderDays() {
           .map((action) => `<a href="${action.url}">${action.label}</a>`)
           .join("");
 
+        const removeButton = event.source === "user"
+          ? `<button class="event-remove" type="button" data-user-remove="${event.id}">Remove</button>`
+          : "";
+
         eventEl.innerHTML = `
-          <div class="event-time">${timeHtml}</div>
+          ${isScheduled ? `<div class="event-time">${timeHtml}</div>` : ""}
           <div>
             <p class="event-title">${event.title}</p>
-            <p class="event-detail">${event.detail}</p>
-            <div class="event-actions">${links}${actions}</div>
+            ${detailText ? `<p class="event-detail">${detailText}</p>` : ""}
+            <div class="event-actions">${links}${actions}${removeButton}</div>
           </div>
         `;
         eventList.appendChild(eventEl);
@@ -228,11 +436,11 @@ function updateNowNext() {
 
   for (const day of days) {
     if (day.date < today) continue;
-    const events = day.events
+    const events = getMergedEvents(day)
+      .filter((event) => event.time)
       .map((event) => ({
         ...event,
-        minutes: Number.parseInt(event.time.split(":")[0], 10) * 60 +
-          Number.parseInt(event.time.split(":")[1], 10),
+        minutes: parseTimeToMinutes(event.time) ?? 0,
       }))
       .sort((a, b) => a.minutes - b.minutes);
 
@@ -351,6 +559,137 @@ function renderChecklist() {
   });
 }
 
+function populateDaySelect() {
+  if (!addItemDay) return;
+  addItemDay.querySelectorAll("option:not([value=\"\"])").forEach((option) => option.remove());
+  days.forEach((day) => {
+    const option = document.createElement("option");
+    option.value = day.date;
+    option.textContent = `${day.weekday} \u00B7 ${day.date} \u00B7 ${day.location}`;
+    addItemDay.appendChild(option);
+  });
+}
+
+function setupOutingGear() {
+  const gearSection = document.getElementById("outing-gear");
+  if (!gearSection) return;
+  outingGearState = loadOutingGear();
+  renderOutingGear();
+
+  gearSection.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    const togglePerson = target.dataset.gearToggle;
+    const resetTarget = target.dataset.gearReset;
+    const removeIndex = target.dataset.gearRemove;
+
+    if (togglePerson) {
+      const index = Number(target.dataset.index);
+      const item = outingGearState.items[index];
+      if (!item) return;
+      item.checks[togglePerson] = !item.checks[togglePerson];
+      saveOutingGear();
+      renderOutingGear();
+      return;
+    }
+
+    if (removeIndex !== undefined) {
+      const index = Number(removeIndex);
+      outingGearState.items.splice(index, 1);
+      saveOutingGear();
+      renderOutingGear();
+      return;
+    }
+
+    if (resetTarget) {
+      outingGearState.items.forEach((item) => {
+        if (resetTarget === "all") {
+          item.checks.daniel = false;
+          item.checks.jaime = false;
+        } else if (resetTarget === "daniel") {
+          item.checks.daniel = false;
+        } else if (resetTarget === "jaime") {
+          item.checks.jaime = false;
+        }
+      });
+      saveOutingGear();
+      renderOutingGear();
+    }
+  });
+
+  if (outingGearForm && outingGearInput) {
+    outingGearForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const label = outingGearInput.value.trim();
+      if (!label) {
+        showActionToast("Add a gear item first.");
+        return;
+      }
+      outingGearState.items.push({
+        label,
+        checks: { daniel: false, jaime: false },
+      });
+      outingGearInput.value = "";
+      saveOutingGear();
+      renderOutingGear();
+    });
+  }
+}
+
+function setupAddItemForm() {
+  if (!addItemForm) return;
+  populateDaySelect();
+
+  addItemForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const title = addItemTitle?.value.trim();
+    if (!title) {
+      showActionToast("Please enter a title.");
+      return;
+    }
+    const dayValue = addItemDay?.value || null;
+    const timeValue = addItemTime?.value || null;
+    const detailValue = addItemDetail?.value.trim() || "";
+    const typeValue = addItemType?.value || "";
+
+    const newItem = {
+      id: `user-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+      day: dayValue || null,
+      time: dayValue ? timeValue : null,
+      title,
+      detail: detailValue,
+      type: typeValue,
+      createdAt: Date.now(),
+    };
+
+    userItems.push(newItem);
+    saveUserItems();
+    renderDays();
+    renderNotesInbox();
+    updateNowNext();
+    renderTodayCard();
+    addItemForm.reset();
+    showActionToast(dayValue ? "Added to day plan." : "Added to notes inbox.");
+  });
+}
+
+function setupUserItemRemoval() {
+  document.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    const removeId = target.dataset.userRemove;
+    if (!removeId) return;
+    const nextItems = userItems.filter((item) => item.id !== removeId);
+    if (nextItems.length === userItems.length) return;
+    userItems = nextItems;
+    saveUserItems();
+    renderDays();
+    renderNotesInbox();
+    updateNowNext();
+    renderTodayCard();
+  });
+}
+
 function setupSearch() {
   if (!searchInput) return;
   searchInput.addEventListener("input", (event) => {
@@ -400,15 +739,17 @@ function renderTodayCard() {
   const upcomingEvents = [];
   days.forEach((day) => {
     if (day.date < today) return;
-    day.events.forEach((event) => {
-      const eventMinutes = Number.parseInt(event.time.split(":")[0], 10) * 60 +
-        Number.parseInt(event.time.split(":")[1], 10);
+    getMergedEvents(day).forEach((event) => {
+      if (!event.time) return;
+      const eventMinutes = parseTimeToMinutes(event.time) ?? 0;
       if (day.date === today && eventMinutes < nowMinutes) return;
       upcomingEvents.push({ day, event });
     });
   });
 
-  if (!upcomingEvents.length) {
+  const unscheduledToday = getMergedEvents(todayDay).filter((event) => !event.time);
+
+  if (!upcomingEvents.length && !unscheduledToday.length) {
     const item = document.createElement("li");
     item.textContent = "No more events scheduled.";
     todayEventsEl.appendChild(item);
@@ -420,6 +761,14 @@ function renderTodayCard() {
     item.textContent = `${event.time} \u00B7 ${event.title} (${day.location})`;
     todayEventsEl.appendChild(item);
   });
+
+  if (!upcomingEvents.length && unscheduledToday.length) {
+    unscheduledToday.slice(0, 2).forEach((event) => {
+      const item = document.createElement("li");
+      item.textContent = `Any time \u00B7 ${event.title} (${todayDay.location})`;
+      todayEventsEl.appendChild(item);
+    });
+  }
 }
 
 function setupTodayActions() {
@@ -622,13 +971,18 @@ function setupDayNav() {
 
 function init() {
   safeWriteStorage(LAST_UPDATED_KEY, String(Date.now()));
+  userItems = loadUserItems();
   renderTimeline();
   renderDays();
   renderTodayCard();
   renderBookings();
   renderMaps();
   renderChecklist();
+  renderNotesInbox();
   setupChecklistExportImport();
+  setupOutingGear();
+  setupAddItemForm();
+  setupUserItemRemoval();
   setupTodayActions();
   setupSearch();
   setupZoneToggle();
