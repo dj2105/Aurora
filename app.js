@@ -61,6 +61,9 @@ const addItemTime = document.getElementById("user-item-time");
 const addItemTitle = document.getElementById("user-item-title");
 const addItemDetail = document.getElementById("user-item-detail");
 const addItemType = document.getElementById("user-item-type");
+const addItemFab = document.getElementById("add-item-fab");
+const addItemModal = document.getElementById("add-item-modal");
+const addItemClose = document.getElementById("add-item-close");
 const notesInboxList = document.getElementById("notes-inbox-list");
 const keyInfoContent = document.getElementById("key-info-content");
 const pillsTodayDate = document.getElementById("pills-today-date");
@@ -1242,6 +1245,47 @@ function setupAddItemForm() {
     setState({ userItems: [...appState.userItems] }, { updatedSections: ["userItems"] });
     addItemForm.reset();
     showActionToast(dayValue ? "Added to day plan." : "Added to notes inbox.");
+    if (addItemModal && !addItemModal.hidden) {
+      closeAddItemModal();
+    }
+  });
+}
+
+function openAddItemModal() {
+  if (!addItemModal) return;
+  addItemModal.hidden = false;
+  document.body.classList.add("modal-open");
+  setTimeout(() => addItemTitle?.focus(), 0);
+}
+
+function closeAddItemModal() {
+  if (!addItemModal) return;
+  addItemModal.hidden = true;
+  document.body.classList.remove("modal-open");
+  addItemFab?.focus();
+}
+
+function setupAddItemModal() {
+  if (!addItemModal || !addItemFab || !addItemClose) return;
+
+  addItemFab.addEventListener("click", () => {
+    openAddItemModal();
+  });
+
+  addItemClose.addEventListener("click", () => {
+    closeAddItemModal();
+  });
+
+  addItemModal.addEventListener("click", (event) => {
+    if (event.target === addItemModal) {
+      closeAddItemModal();
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !addItemModal.hidden) {
+      closeAddItemModal();
+    }
   });
 }
 
@@ -1677,6 +1721,7 @@ function init() {
   setupOutingGear();
   setupPills();
   setupAddItemForm();
+  setupAddItemModal();
   setupUserItemRemoval();
   setupSearch();
   setupCopyPhrases();
