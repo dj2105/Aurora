@@ -519,7 +519,15 @@ function buildAuroraLink(date, time) {
   return url.toString();
 }
 
+function extractLocationCodesFromTitle(title) {
+  if (!title) return [];
+  const matches = [...title.matchAll(/\(([A-Z]{3})\)/g)];
+  return matches.map((m) => m[1]).filter(Boolean);
+}
+
 function buildTimeRows(event) {
+  const BASE_TIME_ZONE = "Europe/Helsinki";
+
   if (event?.timeWindow?.start || event?.timeWindow?.end) {
     const start = event.timeWindow?.start ?? "";
     const end = event.timeWindow?.end ?? "";
@@ -527,42 +535,68 @@ function buildTimeRows(event) {
       {
         label: "Window",
         value: `${start}${start && end ? "–" : ""}${end}`,
-        tz: event.timeWindow?.tz ?? "",
+        tz: "",
       },
     ];
   }
-  if (event?.arrivalTime?.local || event?.arrivalTime?.tz) {
-    return [
-      {
-        label: "Departs",
-        value: event.time?.local ?? "",
-        tz: event.time?.tz ?? "",
-      },
-      {
-        label: "Arrives",
-        value: event.arrivalTime?.local ?? "",
-        tz: event.arrivalTime?.tz ?? "",
-      },
-    ];
+
+  const hasDepart = Boolean(event?.time?.local);
+  const hasArrive = Boolean(event?.arrivalTime?.local);
+
+  if (hasDepart || hasArrive) {
+    const departTz = event?.time?.tz ?? "";
+    const arriveTz = event?.arrivalTime?.tz ?? "";
+    const crossesZones = Boolean(departTz && arriveTz && departTz !== arriveTz);
+
+    const codes = extractLocationCodesFromTitle(event?.title ?? "");
+    const departLoc = codes[0] || event?.station?.depart || "";
+    const arriveLoc = codes[1] || event?.station?.arrive || "";
+
+    const showDepartLoc = Boolean(departLoc && departTz && departTz !== BASE_TIME_ZONE);
+    const showArriveLoc = Boolean(arriveLoc && arriveTz && arriveTz !== BASE_TIME_ZONE);
+
+    const departValue = event?.time?.local
+      ? showDepartLoc || crossesZones
+        ? `${event.time.local} ${departLoc}`
+        : event.time.local
+      : "";
+
+    const arriveValue = event?.arrivalTime?.local
+      ? showArriveLoc || crossesZones
+        ? `${event.arrivalTime.local} ${arriveLoc}`
+        : event.arrivalTime.local
+      : "";
+
+    const rows = [];
+    if (departValue) rows.push({ label: hasArrive ? "Departs" : "Time", value: departValue, tz: "" });
+    if (arriveValue) rows.push({ label: "Arrives", value: arriveValue, tz: "" });
+    return rows;
   }
-  if (event?.time?.local || event?.time?.tz) {
+
+  if (event?.time?.local) {
+    const tz = event?.time?.tz ?? "";
+    const codes = extractLocationCodesFromTitle(event?.title ?? "");
+    const loc = codes[0] || "";
+    const showLoc = Boolean(loc && tz && tz !== BASE_TIME_ZONE);
     return [
       {
         label: "Time",
-        value: event.time?.local ?? "",
-        tz: event.time?.tz ?? "",
+        value: showLoc ? `${event.time.local} ${loc}` : event.time.local,
+        tz: "",
       },
     ];
   }
+
   if (event?.time) {
     return [
       {
         label: "Time",
         value: event.time,
-        tz: event.timeZone ?? "",
+        tz: "",
       },
     ];
   }
+
   return [];
 }
 
@@ -684,13 +718,6 @@ function renderDayCarousel() {
         const titleWrap = document.createElement("div");
         titleWrap.className = "event-card__heading";
 
-        if (event.statusBadge) {
-          const status = document.createElement("span");
-          status.className = "event-card__status";
-          status.textContent = event.statusBadge;
-          titleWrap.appendChild(status);
-        }
-
         const titleEl = document.createElement("h4");
         titleEl.className = "event-card__title";
         titleEl.textContent = event.title;
@@ -806,11 +833,6 @@ function renderDayCarousel() {
             airports.appendChild(airportCard);
           });
           body.appendChild(airports);
-        }
-
-        if (event.webFormatTips?.length) {
-          appendSectionTitle(body, "Web format tips");
-          appendList(body, event.webFormatTips);
         }
 
         card.appendChild(body);
