@@ -2,55 +2,98 @@ const days = [
   {
     id: "day1",
     date: "2026-01-19",
-    shortLabel: "Monday",
-    label: "Monday",
+    shortLabel: "Mon 19 Jan",
+    label: "Mon 19 Jan 2026",
+    baseLocation: "Travel day (Ireland → England → Finland)",
+    daylight: {
+      show: true,
+      note: "Render sunrise/sunset dynamically per airport city.",
+      sources: [
+        {
+          label: "Timeanddate — Rovaniemi sunrise/sunset (date-specific)",
+          href: "https://www.timeanddate.com/sun/finland/rovaniemi?month=1&year=2026",
+        },
+      ],
+    },
     events: [
       {
         type: "flight",
+        statusBadge: "Scheduled",
         title: "Fly: Dublin (DUB) → Birmingham (BHX)",
         time: { local: "06:15", tz: "Europe/Dublin" },
         flight: {
+          airline: "Ryanair",
+          flightNumber: "ADD_FROM_BOARDING_PASS",
+          seatNumbers: "ADD_FROM_BOARDING_PASS",
           bookingRef: "FULUMW",
         },
-        airportsShowTitles: false,
         airports: [
           {
             code: "DUB",
             name: "Dublin Airport",
             map: {
-              label: "Open DUB map",
+              label: "DUB interactive map",
               href: "https://www.dublinairport.com/at-the-airport/the-map",
+              hint: "Make this a prominent button: “Open DUB map”",
             },
             live: {
               label: "DUB live flights",
               href: "https://www.dublinairport.com/flight-information/live-arrivals",
+              hint: "If your site supports tabs, show Arrivals + Departures",
             },
           },
           {
             code: "BHX",
             name: "Birmingham Airport",
             live: {
-              label: "Birmingham live flights",
+              label: "BHX live flights",
               href: "https://www.birminghamairport.co.uk/flights/",
+              hint: "Link to flights page; let user choose arrivals/departures",
             },
           },
+        ],
+        webFormatTips: [
+          "Make the whole event row clickable to the live-flight page; add a smaller 'Map' button.",
+          "Include a 'Copy flight' icon: copies airline + flight number + time + booking ref.",
+          "Show a tiny badge: 'GMT' so timezone is explicit.",
+        ],
+      },
+      {
+        type: "layover",
+        statusBadge: "In-between",
+        title: "Layover: Birmingham (BHX)",
+        time: {
+          local: "CALCULATE_FROM_ACTUAL_ARRIVAL_AND_17_30_DEPARTURE",
+          tz: "Europe/London",
+        },
+        details: [
+          "Total layover time should be computed by the site from actual arrival time (pull from live flight status if possible).",
+          "Good slot for: food, coffee, battery charging, any last-minute airport essentials.",
+        ],
+        links: [
+          { label: "BHX live flights (for gate updates)", href: "https://www.birminghamairport.co.uk/flights/" },
+        ],
+        webFormatTips: [
+          "If you can, auto-calc and display: 'Time until next departure' countdown.",
+          "Add a 'Food near gate' link slot the user can fill later (optional).",
         ],
       },
       {
         type: "flight",
-        title: "Birmingham (BHX) → Rovaniemi (RVN)",
+        statusBadge: "Scheduled",
+        title: "Fly: Birmingham (BHX) → Rovaniemi (RVN)",
         time: { local: "17:30", tz: "Europe/London" },
-        flightTitle: null,
-        airportsTitle: null,
-        airportsShowTitles: false,
         flight: {
+          airline: "Ryanair",
+          flightNumber: "ADD_FROM_BOARDING_PASS",
+          seatNumbers: "ADD_FROM_BOARDING_PASS",
           bookingRef: "SQ23KL",
         },
         airports: [
           {
             code: "BHX",
             name: "Birmingham Airport",
-            live: { label: "Birmingham live flights", href: "https://www.birminghamairport.co.uk/flights/" },
+            live: { label: "BHX live flights", href: "https://www.birminghamairport.co.uk/flights/" },
           },
           {
             code: "RVN",
@@ -58,12 +101,27 @@ const days = [
             live: {
               label: "Finavia — Rovaniemi flights",
               href: "https://www.finavia.fi/en/airports/rovaniemi/flights",
+              hint: "Use if you want an airport-native live board",
             },
             map: {
-              label: "Finavia — Rovaniemi terminal",
+              label: "Finavia — Rovaniemi airport",
               href: "https://www.finavia.fi/en/airports/rovaniemi",
+              hint: "Put terminal/transport buttons here",
             },
           },
+        ],
+      },
+      {
+        type: "overnight",
+        statusBadge: "Unbooked",
+        title: "Overnight near Rovaniemi (needed)",
+        details: [
+          "Your Tornio chalet check-in is Tue 20 Jan, so Monday night accommodation/plan is required.",
+          "Keep as a placeholder event until booked.",
+        ],
+        webFormatTips: [
+          "Add a 'To-do' checkbox and allow attaching a booking PDF/email later.",
+          "Show quick buttons: 'Search near RVN airport' / 'Search near Rovaniemi station'.",
         ],
       },
     ],
@@ -71,8 +129,8 @@ const days = [
   {
     id: "day2",
     date: "2026-01-20",
-    shortLabel: "Tuesday",
-    label: "Tuesday",
+    shortLabel: "Tue 20 Jan",
+    label: "Tue 20 Jan 2026",
     baseLocation: "Rovaniemi → Tornio (check-in day)",
     daylight: {
       show: true,
@@ -230,8 +288,8 @@ const days = [
   {
     id: "day3",
     date: "2026-01-21",
-    shortLabel: "Wednesday",
-    label: "Wednesday",
+    shortLabel: "Wed 21 Jan",
+    label: "Wed 21 Jan 2026",
     baseLocation: "Tornio (full day)",
     daylight: {
       show: true,
@@ -268,8 +326,8 @@ const days = [
   {
     id: "day4",
     date: "2026-01-22",
-    shortLabel: "Thursday",
-    label: "Thursday",
+    shortLabel: "Thu 22 Jan",
+    label: "Thu 22 Jan 2026",
     baseLocation: "Tornio (full day)",
     daylight: {
       show: true,
@@ -310,8 +368,8 @@ const days = [
   {
     id: "day5",
     date: "2026-01-23",
-    shortLabel: "Friday",
-    label: "Friday",
+    shortLabel: "Fri 23 Jan",
+    label: "Fri 23 Jan 2026",
     baseLocation: "Tornio (final full day)",
     daylight: {
       show: true,
@@ -346,8 +404,8 @@ const days = [
   {
     id: "day6",
     date: "2026-01-24",
-    shortLabel: "Saturday",
-    label: "Saturday",
+    shortLabel: "Sat 24 Jan",
+    label: "Sat 24 Jan 2026",
     baseLocation: "Tornio → Kemi → Rovaniemi → Birmingham → Dublin",
     daylight: {
       show: true,
