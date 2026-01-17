@@ -6,6 +6,7 @@
     <base href="/Aurora/" />
     <title>Aurora Trip Reference</title>
     <meta name="theme-color" content="#000000" />
+    <meta name="google-maps-key" content="" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
@@ -26,38 +27,66 @@
             <span class="hud-value" data-role="time-ie">--:--</span>
           </div>
         </div>
-        <div class="hud-tonight" aria-live="polite">
-          <p class="hud-tonight__label">Tonight weather</p>
-          <p class="hud-tonight__value" data-role="cloud-tonight">--</p>
-        </div>
-        <div class="hud-chips" role="list">
-          <button class="hud-chip" type="button" data-role="weather-now">Now --</button>
-          <button class="hud-chip" type="button" data-role="aurora-now">Kp --</button>
-          <button class="hud-chip hud-chip--accent" type="button" data-role="aurora-score">Aurora --</button>
+        <div class="hud-hero" aria-live="polite">
+          <div class="hud-hero__header">
+            <div>
+              <p class="hud-hero__label">Tonight in Tornio</p>
+              <p class="hud-hero__window">20:00–02:00</p>
+            </div>
+          </div>
+          <div class="hud-hero__grid">
+            <div class="hud-hero__stat">
+              <div class="hud-hero__stat-head">
+                <span class="hud-hero__icon" aria-hidden="true">🌡️</span>
+                <span>Temp (min/max)</span>
+              </div>
+              <p class="hud-hero__value" data-role="tonight-temp">--</p>
+              <p class="hud-hero__meta" data-role="tonight-temp-meta"></p>
+            </div>
+            <div class="hud-hero__stat">
+              <div class="hud-hero__stat-head">
+                <span class="hud-hero__icon" aria-hidden="true">☁️</span>
+                <span>Cloud cover (avg)</span>
+              </div>
+              <p class="hud-hero__value" data-role="tonight-cloud">--</p>
+              <p class="hud-hero__meta" data-role="tonight-cloud-meta"></p>
+            </div>
+            <div class="hud-hero__stat">
+              <div class="hud-hero__stat-head">
+                <span class="hud-hero__icon" aria-hidden="true">🧲</span>
+                <span>Kp index</span>
+              </div>
+              <p class="hud-hero__value" data-role="tonight-kp">--</p>
+              <p class="hud-hero__meta" data-role="tonight-kp-meta"></p>
+            </div>
+          </div>
         </div>
         <p class="hud-status" data-role="hud-status"></p>
       </section>
-      <nav class="day-nav" aria-label="Trip days">
-        <div class="day-nav__scroll" id="timeline"></div>
-      </nav>
     </div>
 
     <main class="page">
       <section class="hero tab-section" data-tab-section="home">
-        <div class="hero-card now-next" aria-live="polite">
-          <h2>Now / Next</h2>
-          <div class="now-next__grid">
+        <div class="hero-card street-view-card">
+          <div class="street-view__header">
             <div>
-              <p class="label">Now</p>
-              <p class="value value--hero" id="current-location">Tornio</p>
+              <p class="street-view__eyebrow">Street View</p>
+              <h2>Night drive spot check</h2>
             </div>
-            <div>
-              <p class="label">Next up</p>
-              <p class="value" id="next-title">Loading…</p>
-              <p class="meta" id="next-meta"></p>
+            <button class="street-view__shuffle" type="button" id="street-view-shuffle" aria-label="Shuffle Street View">
+              🔀
+            </button>
+          </div>
+          <div class="street-view__frame" id="street-view-frame">
+            <div class="street-view__fallback" id="street-view-fallback" hidden>
+              <p>Street View needs a Google Maps key.</p>
             </div>
           </div>
+          <p class="street-view__meta" id="street-view-meta"></p>
         </div>
+        <nav class="day-nav" aria-label="Trip days">
+          <div class="day-nav__scroll" id="timeline"></div>
+        </nav>
         <div class="day-carousel" aria-label="Daily schedule carousel" id="day-carousel">
           <div class="day-carousel__track" id="day-carousel-track"></div>
         </div>
@@ -255,6 +284,7 @@
     <script type="module" src="app.js"></script>
     <script type="module" src="assets/js/sync.js"></script>
     <script type="module" src="assets/js/trip-hud.js"></script>
+    <script type="module" src="assets/js/street-view.js"></script>
     <script type="module" src="assets/js/pwa.js"></script>
   </body>
 </html>
