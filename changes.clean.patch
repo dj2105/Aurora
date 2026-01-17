@@ -1,4 +1,4 @@
-diff --git a/app.js b/app.js
+﻿diff --git a/app.js b/app.js
 index d41850d15564db5dc9b84585e86ffd665cd2a56c..8cb5b74070b452168479424a7f9f0ec90f968180 100644
 --- a/app.js
 +++ b/app.js
@@ -84,7 +84,7 @@ index d41850d15564db5dc9b84585e86ffd665cd2a56c..8cb5b74070b452168479424a7f9f0ec9
 +  {
 +    date: "2026-01-24",
 +    weekday: "Saturday",
-+    location: "Tornio → Travel",
++    location: "Tornio â†’ Travel",
 +    notes: "Check-out + travel home.",
 +    timeZone: "Europe/Helsinki",
 +    events: [
@@ -187,7 +187,7 @@ index d41850d15564db5dc9b84585e86ffd665cd2a56c..8cb5b74070b452168479424a7f9f0ec9
  
  function formatEventTime(event) {
    if (displayZone === "home") {
-     return event.home_time ? `${event.home_time} Home` : "—";
+     return event.home_time ? `${event.home_time} Home` : "â€”";
    }
    if (displayZone === "both") {
      return `${event.time} Local${event.home_time ? `\n${event.home_time} Home` : ""}`;
@@ -232,7 +232,7 @@ index d41850d15564db5dc9b84585e86ffd665cd2a56c..8cb5b74070b452168479424a7f9f0ec9
  
 -    section.innerHTML = `
 -      <div class="day-header">
--        <h3>${day.weekday} · ${day.date} · ${day.location}</h3>
+-        <h3>${day.weekday} Â· ${day.date} Â· ${day.location}</h3>
 -        ${day.sun_data ? `<p class="day-meta">${day.sun_data}</p>` : ""}
 -        ${day.notes ? `<p class="day-meta">${day.notes}</p>` : ""}
 -      </div>
@@ -240,7 +240,7 @@ index d41850d15564db5dc9b84585e86ffd665cd2a56c..8cb5b74070b452168479424a7f9f0ec9
 +    const header = document.createElement("div");
 +    header.className = "day-header";
 +    header.innerHTML = `
-+      <h3>${day.weekday} · ${day.date} · ${day.location}</h3>
++      <h3>${day.weekday} Â· ${day.date} Â· ${day.location}</h3>
 +      ${day.sun_data ? `<p class="day-meta">${day.sun_data}</p>` : ""}
 +      ${day.notes ? `<p class="day-meta">${day.notes}</p>` : ""}
 +    `;
@@ -799,10 +799,8 @@ literal 451
 zcmeAS@N?(olHy`uVBq!ia0vp^2SAvE4M+yv$zf+;VC?dAaSW-r_4cwMF9QR|0fU?e
 z{|__YI=~`to0V`<X*b(GE<pnZ2?ibpHU{Pf#sdrq4AkZ}FuKsfSY!v&%<T|M3>r8n
 d4xt8bZqI40T$=^2t_DU9gQu&X%Q~loCIHE`OMd_W
-
 literal 0
 HcmV?d00001
-
 diff --git a/assets/icons/icon-512.png b/assets/icons/icon-512.png
 new file mode 100644
 index 0000000000000000000000000000000000000000..50f10a83ebc7fbea9108b3befe1379cae4f1c305
@@ -812,10 +810,8 @@ zcmeAS@N?(olHy`uVBq!ia0y~yU;;9k7&zE~)R&4YzZe+U9(%ethE&{odrgs%fq~<I
 zLDq%)7aMZ|n2sOeim~04&Cn3<#KK^}z|a7c=3!t+0P19BV31&7H~?e;&A~54qH=^K
 zM466Ij&Kt;F~aTy>0(x3A=+Q4wy-&j1`#3#u!i<%5CO9b{){skM593jD^5qtB7!vz
 d(LuCh^G@ceM;Fd0HUy?G22WQ%mvv4FO#r>Fp!Wa(
-
 literal 0
 HcmV?d00001
-
 diff --git a/assets/js/aurora-dashboard.js b/assets/js/aurora-dashboard.js
 index f3ffbe07c2046fdf6ae5e6f6a037924d7d68473b..b7d437c0f053a91c7a4b75d374b71deb7b8b8a57 100644
 --- a/assets/js/aurora-dashboard.js
@@ -1060,7 +1056,7 @@ index f3ffbe07c2046fdf6ae5e6f6a037924d7d68473b..b7d437c0f053a91c7a4b75d374b71deb
 -  }
 -
 -  function formatMetric(value, suffix = "") {
--    if (value === null || value === undefined || Number.isNaN(value)) return "—";
+-    if (value === null || value === undefined || Number.isNaN(value)) return "â€”";
 -    return `${Math.round(value)}${suffix}`;
 -  }
 -
@@ -1084,7 +1080,7 @@ index f3ffbe07c2046fdf6ae5e6f6a037924d7d68473b..b7d437c0f053a91c7a4b75d374b71deb
          <header class="live-dashboard__header">
            <div>
              <p class="live-dashboard__eyebrow">Live conditions</p>
-             <h4 class="live-dashboard__title" data-role="title">Live conditions — ${state.location.label}</h4>
+             <h4 class="live-dashboard__title" data-role="title">Live conditions â€” ${state.location.label}</h4>
              <p class="live-dashboard__sub" data-role="local-time">Local time: --:--</p>
            </div>
            <button class="live-dashboard__refresh" type="button" data-role="refresh">Refresh</button>
@@ -1137,7 +1133,7 @@ index f3ffbe07c2046fdf6ae5e6f6a037924d7d68473b..b7d437c0f053a91c7a4b75d374b71deb
      })();
  
      const kpNow = kpObserved?.kp ?? null;
-     const kpNowLabel = kpNow === null ? "—" : kpNow.toFixed(1);
+     const kpNowLabel = kpNow === null ? "â€”" : kpNow.toFixed(1);
      const score = Math.round(
        100 * (1 - (cloudNow ?? 100) / 100) * Math.min(1, Math.max(0, (kpNow ?? 0) / 6))
      );
@@ -1145,11 +1141,11 @@ index f3ffbe07c2046fdf6ae5e6f6a037924d7d68473b..b7d437c0f053a91c7a4b75d374b71deb
  
      state.instances.forEach((instance) => {
        instance.card.classList.remove("is-loading");
-       instance.temp.textContent = `${formatMetric(currentTemp, "°")}`;
+       instance.temp.textContent = `${formatMetric(currentTemp, "Â°")}`;
        instance.summary.textContent = `Cloud ${formatMetric(cloudNow, "%")}`;
        const windText = windSpeed !== null && windSpeed !== undefined
-         ? `Wind ${formatMetric(windSpeed, " m/s")}${gusts ? ` · Gusts ${formatMetric(gusts, " m/s")}` : ""}`
-         : "—";
+         ? `Wind ${formatMetric(windSpeed, " m/s")}${gusts ? ` Â· Gusts ${formatMetric(gusts, " m/s")}` : ""}`
+         : "â€”";
        instance.wind.textContent = windText;
        instance.cloudNow.textContent = formatMetric(cloudNow, "%");
        instance.cloudTonight.textContent = formatMetric(tonightCloud, "%");
@@ -1346,7 +1342,7 @@ index 0000000000000000000000000000000000000000..a3c81df1fe82c9e2327857ca2acd0f36
 +}
 +
 +function formatMetric(value, suffix = "") {
-+  if (value === null || value === undefined || Number.isNaN(value)) return "—";
++  if (value === null || value === undefined || Number.isNaN(value)) return "â€”";
 +  return `${Math.round(value)}${suffix}`;
 +}
 +
@@ -1463,7 +1459,7 @@ index 0000000000000000000000000000000000000000..e06a59dd8be899978dc5254d690ff94e
 +    if (readDismissed() || isStandalone()) return;
 +
 +    if (isIos()) {
-+      showToast("Install: Share → Add to Home Screen", [
++      showToast("Install: Share â†’ Add to Home Screen", [
 +        {
 +          label: "Dismiss",
 +          onClick: () => {
@@ -1502,7 +1498,7 @@ index 0000000000000000000000000000000000000000..e06a59dd8be899978dc5254d690ff94e
 +
 +  function setupOfflineHandling() {
 +    window.addEventListener("offline", () => {
-+      showOfflineToast("Offline — showing cached content");
++      showOfflineToast("Offline â€” showing cached content");
 +    });
 +    window.addEventListener("online", () => {
 +      showOfflineToast("Back online");
@@ -1668,7 +1664,7 @@ index 0000000000000000000000000000000000000000..27ac790c61d56d924d256f8a3be48e5f
 +      const tonightCloud = computeTonightCloudAverage(hourly, TIME_ZONE);
 +
 +      if (elements.weatherNow) {
-+        elements.weatherNow.textContent = `Temp ${formatMetric(temp, "°")} · Cloud ${formatMetric(cloudNow, "%")}`;
++        elements.weatherNow.textContent = `Temp ${formatMetric(temp, "Â°")} Â· Cloud ${formatMetric(cloudNow, "%")}`;
 +      }
 +      if (elements.cloudTonight) {
 +        elements.cloudTonight.textContent = `Tonight ${formatMetric(tonightCloud, "%")} cloud`;
@@ -1677,23 +1673,23 @@ index 0000000000000000000000000000000000000000..27ac790c61d56d924d256f8a3be48e5f
 +      const kpObserved = parseKpObserved(kpObservedResult.data);
 +      const kpMax = parseKpForecastMax(kpForecastResult.data, 12);
 +      const kpNow = kpObserved?.kp ?? null;
-+      const kpNowLabel = kpNow === null ? "—" : kpNow.toFixed(1);
++      const kpNowLabel = kpNow === null ? "â€”" : kpNow.toFixed(1);
 +      const score = Math.round(
 +        100 * (1 - (cloudNow ?? 100) / 100) * Math.min(1, Math.max(0, (kpNow ?? 0) / 6))
 +      );
 +
 +      if (elements.auroraNow) {
-+        elements.auroraNow.textContent = `Kp ${kpNowLabel} · 12h max ${kpMax === null ? "—" : kpMax.toFixed(1)}`;
++        elements.auroraNow.textContent = `Kp ${kpNowLabel} Â· 12h max ${kpMax === null ? "â€”" : kpMax.toFixed(1)}`;
 +      }
 +      if (elements.auroraScore) {
 +        const label = scoreLabel(score);
-+        elements.auroraScore.textContent = `Aurora ${score} · ${label}`;
++        elements.auroraScore.textContent = `Aurora ${score} Â· ${label}`;
 +        elements.auroraScore.dataset.score = scoreTier(score);
 +      }
 +
 +      const stale = weatherResult.stale || kpObservedResult.stale || kpForecastResult.stale;
 +      if (stale) {
-+        setStatus("Using cached data — check connection", true);
++        setStatus("Using cached data â€” check connection", true);
 +      }
 +    } catch (error) {
 +      setStatus("Unable to load live data.", true);
@@ -1737,7 +1733,7 @@ index 1b457927d246e4aff7fb03f9374da7916c60f4be..6a4da8451c3a457283e3e5d320ab8449
      <header class="site-header">
        <div class="trip-title">
          <h1>Lapland Winter Expedition</h1>
-         <p>Daniel • Jaime · Jan 19–24, 2026</p>
+         <p>Daniel â€¢ Jaime Â· Jan 19â€“24, 2026</p>
        </div>
        <div class="timezone-toggle" role="group" aria-label="Time zone display">
          <button class="toggle-btn is-active" data-zone="local">Local</button>
@@ -1796,11 +1792,11 @@ index 1b457927d246e4aff7fb03f9374da7916c60f4be..6a4da8451c3a457283e3e5d320ab8449
            <div>
              <p class="eyebrow">Now</p>
              <p class="time" id="current-time">--:--</p>
-             <p class="meta" id="current-location">Checking local time…</p>
+             <p class="meta" id="current-location">Checking local timeâ€¦</p>
            </div>
            <div>
              <p class="eyebrow">Next</p>
-             <p class="next-title" id="next-title">Loading…</p>
+             <p class="next-title" id="next-title">Loadingâ€¦</p>
              <p class="meta" id="next-meta">--</p>
            </div>
          </div>
@@ -1848,8 +1844,8 @@ index 1b457927d246e4aff7fb03f9374da7916c60f4be..6a4da8451c3a457283e3e5d320ab8449
            <ul>
              <li>Focus: Infinity (manual focus on a star)</li>
              <li>Aperture: f/2.8 or lowest possible</li>
-             <li>ISO: 1600–3200 (start high, lower if noisy)</li>
-             <li>Shutter: 2–10 seconds (longer = trails)</li>
+             <li>ISO: 1600â€“3200 (start high, lower if noisy)</li>
+             <li>Shutter: 2â€“10 seconds (longer = trails)</li>
              <li>Batteries: Keep spares in inside pocket</li>
            </ul>
            <div class="pill-row">
@@ -1890,7 +1886,7 @@ index 1b457927d246e4aff7fb03f9374da7916c60f4be..6a4da8451c3a457283e3e5d320ab8449
      </main>
  
      <footer class="site-footer">
-       <p>Offline-ready · Stored on device · Tap times for details</p>
+       <p>Offline-ready Â· Stored on device Â· Tap times for details</p>
      </footer>
  
 +    <div class="install-toast" id="install-toast" role="status" aria-live="polite" hidden></div>
@@ -1945,14 +1941,14 @@ index 0000000000000000000000000000000000000000..536995a2cfa4262d41af9a93913aecac
 +  <head>
 +    <meta charset="UTF-8" />
 +    <meta name="viewport" content="width=device-width, initial-scale=1" />
-+    <title>Aurora Trip — Offline</title>
++    <title>Aurora Trip â€” Offline</title>
 +    <link rel="stylesheet" href="styles.css" />
 +  </head>
 +  <body>
 +    <main class="offline-page">
 +      <div class="offline-card">
-+        <h1>You’re offline</h1>
-+        <p>Cached trip info is still available. Try again once you’re back online.</p>
++        <h1>Youâ€™re offline</h1>
++        <p>Cached trip info is still available. Try again once youâ€™re back online.</p>
 +        <a class="pill" href="./">Return to the trip</a>
 +      </div>
 +    </main>
