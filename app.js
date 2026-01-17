@@ -507,6 +507,134 @@ function formatDayHeader(day) {
   return formatTripDate(day.date, day.timeZone);
 }
 
+function formatWeekdayLong(dateString, timeZone) {
+  const date = parseTripDate(dateString);
+  if (!date) return "";
+  return new Intl.DateTimeFormat("en-GB", {
+    weekday: "long",
+    timeZone: timeZone ?? "UTC",
+  }).format(date);
+}
+
+function formatDateCompact(dateString, timeZone) {
+  const date = parseTripDate(dateString);
+  if (!date) return dateString;
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "short",
+    timeZone: timeZone ?? "UTC",
+  }).format(date);
+}
+
+function normaliseValue(value) {
+  if (!value) return "";
+  const trimmed = String(value).trim();
+  if (!trimmed) return "";
+  if (/^ADD_/.test(trimmed) || /CALCULATE_/.test(trimmed)) return "";
+  return trimmed;
+}
+
+function collectEventMeta(event) {
+  const primary = [];
+  const extra = [];
+  const links = [];
+
+  if (event?.station?.depart || event?.station?.arrive) {
+    const left = event.station.depart ? String(event.station.depart).trim() : "";
+    const right = event.station.arrive ? String(event.station.arrive).trim() : "";
+    if (left && right) primary.push(`${left} → ${right}`);
+    else if (left) primary.push(left);
+    else if (right) primary.push(right);
+  }
+
+  if (event?.seat) {
+    const coach = event.seat.coach ? `Coach ${event.seat.coach}` : "";
+    const seats = Array.isArray(event.seat.seats) && event.seat.seats.length ? `Seats ${event.seat.seats.join(", ")}` : "";
+    const combined = [coach, seats].filter(Boolean).join(" · ");
+    if (combined) primary.push(combined);
+  }
+
+  if (event?.flight) {
+    const airline = normaliseValue(event.flight.airline);
+    const flightNumber = normaliseValue(event.flight.flightNumber);
+    const seatNumbers = normaliseValue(event.flight.seatNumbers);
+    const bits = [];
+    if (airline) bits.push(airline);
+    if (flightNumber) bits.push(`Flight ${flightNumber}`);
+    if (seatNumbers) bits.push(`Seats ${seatNumbers}`);
+    if (bits.length) primary.push(bits.join(" · "));
+
+    const statusLink = buildTransportStatusLink({
+      ...event,
+      flightNumber: flightNumber || event.flight.flightNumber,
+      airlineCode: event.airlineCode,
+      flightDate: event.flightDate,
+    });
+    if (statusLink) links.push({ label: "Live status", href: statusLink });
+  }
+
+  if (event?.booking) {
+    const provider = normaliseValue(event.booking.provider);
+    const order = normaliseValue(event.booking.orderNumber);
+    const bits = [];
+    if (provider) bits.push(provider);
+    if (order) bits.push(`Order ${order}`);
+    if (bits.length) extra.push(`Booking: ${bits.join(" · ")}`);
+    if (Array.isArray(event.booking.ticketLinks)) {
+      event.booking.ticketLinks.forEach((link) => {
+        if (link?.href) links.push(link);
+      });
+    }
+  }
+
+  if (event?.place) {
+    const address = normaliseValue(event.place.address);
+    if (address) primary.push(address);
+    if (event.place.phone?.href) links.push(event.place.phone);
+    if (Array.isArray(event.place.maps)) {
+      event.place.maps.forEach((link) => {
+        if (link?.href) links.push(link);
+      });
+    }
+  }
+
+  if (Array.isArray(event?.details) && event.details.length) {
+    extra.push(...event.details.filter(Boolean));
+  }
+  if (Array.isArray(event?.notes) && event.notes.length) {
+    extra.push(...event.notes.filter(Boolean));
+  }
+
+  if (Array.isArray(event?.links) && event.links.length) {
+    event.links.forEach((link) => {
+      if (link?.href) links.push(link);
+    });
+  }
+
+  if (Array.isArray(event?.airports) && event.airports.length) {
+    event.airports.forEach((airport) => {
+      if (airport?.live?.href) links.push(airport.live);
+      if (airport?.map?.href) links.push(airport.map);
+    });
+  }
+
+  // De-duplicate links by href.
+  const seen = new Set();
+  const dedupedLinks = [];
+  links.forEach((link) => {
+    if (!link?.href) return;
+    if (seen.has(link.href)) return;
+    seen.add(link.href);
+    dedupedLinks.push(link);
+  });
+
+  return {
+    primary: primary.filter(Boolean),
+    extra: extra.filter(Boolean),
+    links: dedupedLinks,
+  };
+}
+
 function buildAuroraLink(date, time) {
   const hud = document.getElementById("trip-hud");
   const lat = Number.parseFloat(hud?.dataset?.lat ?? "65.845");
@@ -694,7 +822,8 @@ function renderDayCarousel() {
     header.className = "day-panel__header";
     header.innerHTML = `
       <div class="day-panel__heading">
-        <h3 class="day-panel__title">${day.label ?? day.weekday}</h3>
+        <h3 class="day-panel__title">${formatWeekdayLong(day.date, day.timeZone)}</h3>
+        <p class="day-panel__date">${formatDateCompact(day.date, day.timeZone)}</p>
         ${day.baseLocation ? `<p class="day-panel__subtitle">${day.baseLocation}</p>` : ""}
       </div>
     `;
@@ -747,92 +876,56 @@ function renderDayCarousel() {
         const body = document.createElement("div");
         body.className = "event-card__body";
 
-        if (event.flight) {
-          appendSectionTitle(body, "Flight");
-          const list = [];
-          if (event.flight.airline) list.push(`Airline: ${event.flight.airline}`);
-          if (event.flight.flightNumber) list.push(`Flight number: ${event.flight.flightNumber}`);
-          if (event.flight.seatNumbers) list.push(`Seat numbers: ${event.flight.seatNumbers}`);
-          if (event.flight.bookingRef) list.push(`Booking ref: ${event.flight.bookingRef}`);
-          if (list.length) appendList(body, list);
-        }
+        const meta = collectEventMeta(event);
 
-        if (event.seat) {
-          appendSectionTitle(body, "Seat");
-          const list = [];
-          if (event.seat.coach) list.push(`Coach: ${event.seat.coach}`);
-          if (event.seat.seats?.length) list.push(`Seats: ${event.seat.seats.join(", ")}`);
-          if (list.length) appendList(body, list);
-        }
-
-        if (event.station) {
-          appendSectionTitle(body, "Station");
-          const list = [];
-          if (event.station.depart) list.push(`Depart: ${event.station.depart}`);
-          if (event.station.arrive) list.push(`Arrive: ${event.station.arrive}`);
-          if (list.length) appendList(body, list);
-        }
-
-        if (event.booking) {
-          appendSectionTitle(body, "Booking");
-          const list = [];
-          if (event.booking.provider) list.push(`Provider: ${event.booking.provider}`);
-          if (event.booking.orderNumber) list.push(`Order number: ${event.booking.orderNumber}`);
-          if (list.length) appendList(body, list);
-          if (event.booking.ticketLinks?.length) {
-            appendSectionTitle(body, "Tickets");
-            appendLinks(body, event.booking.ticketLinks);
-          }
-        }
-
-        if (event.place) {
-          appendSectionTitle(body, "Place");
-          const list = [];
-          if (event.place.name) list.push(`Name: ${event.place.name}`);
-          if (event.place.address) list.push(`Address: ${event.place.address}`);
-          if (list.length) appendList(body, list);
-          if (event.place.phone) {
-            appendSectionTitle(body, "Contact");
-            appendLinks(body, [event.place.phone]);
-          }
-          if (event.place.maps?.length) {
-            appendSectionTitle(body, "Maps");
-            appendLinks(body, event.place.maps);
-          }
-        }
-
-        if (event.details?.length) {
-          appendSectionTitle(body, "Details");
-          appendList(body, event.details);
-        }
-
-        if (event.notes?.length) {
-          appendSectionTitle(body, "Notes");
-          appendList(body, event.notes);
-        }
-
-        if (event.links?.length) {
-          appendSectionTitle(body, "Links");
-          appendLinks(body, event.links);
-        }
-
-        if (event.airports?.length) {
-          appendSectionTitle(body, "Airports");
-          const airports = document.createElement("div");
-          airports.className = "event-card__airports";
-          event.airports.forEach((airport) => {
-            const airportCard = document.createElement("div");
-            airportCard.className = "event-card__airport";
-            airportCard.innerHTML = `<p class="event-card__airport-title">${airport.code} — ${airport.name}</p>`;
-            const links = [];
-            if (airport.map) links.push(airport.map);
-            if (airport.live) links.push(airport.live);
-            if (links.length) {
-              appendLinks(airportCard, links);
-            }
-            airports.appendChild(airportCard);
+        if (meta.primary.length) {
+          const list = document.createElement("ul");
+          list.className = "event-card__primary";
+          meta.primary.forEach((line) => {
+            const li = document.createElement("li");
+            li.textContent = line;
+            list.appendChild(li);
           });
-          body.appendChild(airports);
+          body.appendChild(list);
+        }
+
+        const hasDetails = meta.extra.length || meta.links.length;
+        if (hasDetails) {
+          const details = document.createElement("details");
+          details.className = "event-card__details";
+          const summary = document.createElement("summary");
+          summary.className = "event-card__details-summary";
+          summary.textContent = "More";
+          details.appendChild(summary);
+
+          if (meta.extra.length) {
+            const extraList = document.createElement("ul");
+            extraList.className = "event-card__extra";
+            meta.extra.forEach((line) => {
+              const li = document.createElement("li");
+              li.textContent = line;
+              extraList.appendChild(li);
+            });
+            details.appendChild(extraList);
+          }
+
+          if (meta.links.length) {
+            const linkList = document.createElement("ul");
+            linkList.className = "event-card__links";
+            meta.links.forEach((link) => {
+              const li = document.createElement("li");
+              const a = document.createElement("a");
+              a.href = link.href;
+              a.target = "_blank";
+              a.rel = "noopener noreferrer";
+              a.textContent = link.label ?? link.href;
+              li.appendChild(a);
+              linkList.appendChild(li);
+            });
+            details.appendChild(linkList);
+          }
+
+          body.appendChild(details);
         }
 
         card.appendChild(body);

@@ -27,7 +27,7 @@ import {
     tonightTempHigh: hud.querySelector("[data-role='tonight-temp-high']"),
     tonightTempHighTime: hud.querySelector("[data-role='tonight-temp-high-time']"),
     tonightCloudAvg: hud.querySelector("[data-role='tonight-cloud-avg']"),
-    tonightCloudAvgLabel: hud.querySelector("[data-role='tonight-cloud-avg-label']"),
+    tonightCloudAvgTime: hud.querySelector("[data-role='tonight-cloud-avg-time']"),
     tonightCloudBest: hud.querySelector("[data-role='tonight-cloud-best']"),
     tonightCloudBestTime: hud.querySelector("[data-role='tonight-cloud-best-time']"),
     tonightKpMax: hud.querySelector("[data-role='tonight-kp-max']"),
@@ -162,6 +162,19 @@ import {
 
       const cloudAvg =
         cloudValues.length > 0 ? cloudValues.reduce((sum, value) => sum + value, 0) / cloudValues.length : null;
+
+      let avgCloudHour = null;
+      if (cloudAvg !== null) {
+        let bestDelta = null;
+        tonightHours.forEach((hour) => {
+          if (hour.cloud === null) return;
+          const delta = Math.abs(hour.cloud - cloudAvg);
+          if (bestDelta === null || delta < bestDelta) {
+            bestDelta = delta;
+            avgCloudHour = hour.hour;
+          }
+        });
+      }
       let bestCloudHour = null;
       let bestCloudValue = null;
       tonightHours.forEach((hour) => {
@@ -196,8 +209,8 @@ import {
       if (elements.tonightCloudAvg) {
         elements.tonightCloudAvg.textContent = cloudAvg !== null ? formatMetric(cloudAvg, "%") : "\u2014";
       }
-      if (elements.tonightCloudAvgLabel) {
-        elements.tonightCloudAvgLabel.textContent = "avg";
+      if (elements.tonightCloudAvgTime) {
+        elements.tonightCloudAvgTime.textContent = avgCloudHour !== null ? formatHourLabel(avgCloudHour) : "";
       }
       if (elements.tonightCloudBest) {
         elements.tonightCloudBest.textContent = bestCloudValue !== null ? formatMetric(bestCloudValue, "%") : "\u2014";
