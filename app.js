@@ -5,6 +5,7 @@ const outingGearKey = "aurora-outing-gear-v1";
 const pillsKey = "aurora-pills-v1";
 const userItemsKey = "aurora-user-items-v1";
 const copyPhrasesKey = "aurora-copy-phrases-v1";
+const uiKey = "aurora-ui-v1";
 const LAST_UPDATED_KEY = "aurora-last-updated";
 const syncMetaKey = "aurora-sync-meta-v1";
 let displayZone = "transport";
@@ -18,12 +19,14 @@ let appState = {
   userItems: [],
   copyPhrases: { items: [] },
   checklist: {},
+  ui: { bigText: false },
   updatedAt: {
     gear: 0,
     pills: 0,
     checklist: 0,
     userItems: 0,
     copyPhrases: 0,
+    ui: 0,
   },
 };
 const stateListeners = new Set();
@@ -62,6 +65,7 @@ const keyInfoContent = document.getElementById("key-info-content");
 const pillsTodayDate = document.getElementById("pills-today-date");
 const pillsTodayStatus = document.getElementById("pills-today-status");
 const timeDisplaySelect = document.getElementById("time-display");
+const bigTextToggle = document.getElementById("big-text-toggle");
 const copyPhrasesBody = document.getElementById("copy-phrases-body");
 const copyPhrasesForm = document.getElementById("copy-phrases-form");
 const copyPhrasesCategory = document.getElementById("copy-phrases-category");
@@ -372,6 +376,17 @@ function loadChecklistState() {
   }
 }
 
+function loadUiState() {
+  try {
+    const stored = safeReadStorage(uiKey);
+    if (!stored) return { bigText: false };
+    const parsed = JSON.parse(stored);
+    return { bigText: Boolean(parsed?.bigText) };
+  } catch (error) {
+    return { bigText: false };
+  }
+}
+
 function loadUpdatedAt() {
   try {
     const stored = safeReadStorage(syncMetaKey);
@@ -382,6 +397,7 @@ function loadUpdatedAt() {
         checklist: 0,
         userItems: 0,
         copyPhrases: 0,
+        ui: 0,
       };
     }
     const parsed = JSON.parse(stored);
@@ -391,6 +407,7 @@ function loadUpdatedAt() {
       checklist: Number(parsed?.checklist ?? parsed?.updatedAt?.checklist ?? 0),
       userItems: Number(parsed?.userItems ?? parsed?.updatedAt?.userItems ?? 0),
       copyPhrases: Number(parsed?.copyPhrases ?? parsed?.updatedAt?.copyPhrases ?? 0),
+      ui: Number(parsed?.ui ?? parsed?.updatedAt?.ui ?? 0),
     };
   } catch (error) {
     return {
@@ -399,6 +416,7 @@ function loadUpdatedAt() {
       checklist: 0,
       userItems: 0,
       copyPhrases: 0,
+      ui: 0,
     };
   }
 }
@@ -409,6 +427,7 @@ function persistState() {
   safeWriteStorage(userItemsKey, JSON.stringify(appState.userItems));
   safeWriteStorage(copyPhrasesKey, JSON.stringify(appState.copyPhrases));
   safeWriteStorage(storageKey, JSON.stringify(appState.checklist));
+  safeWriteStorage(uiKey, JSON.stringify(appState.ui));
   safeWriteStorage(syncMetaKey, JSON.stringify(appState.updatedAt));
 }
 
@@ -1100,6 +1119,14 @@ function setupOutingGear() {
   }
 }
 
+function applyUiState() {
+  const isBigText = Boolean(appState.ui?.bigText);
+  document.documentElement.classList.toggle("big-text", isBigText);
+  if (bigTextToggle) {
+    bigTextToggle.checked = isBigText;
+  }
+}
+
 function applyStateToUI(updatedSections = []) {
   if (!updatedSections.length) return;
   if (updatedSections.includes("gear")) {
@@ -1122,6 +1149,18 @@ function applyStateToUI(updatedSections = []) {
   if (updatedSections.includes("checklist")) {
     renderChecklist();
   }
+  if (updatedSections.includes("ui")) {
+    applyUiState();
+  }
+}
+
+function setupUiToggles() {
+  if (!bigTextToggle) return;
+  bigTextToggle.addEventListener("change", () => {
+    const nextValue = bigTextToggle.checked;
+    if (appState.ui?.bigText === nextValue) return;
+    setState({ ui: { ...appState.ui, bigText: nextValue } }, { updatedSections: ["ui"] });
+  });
 }
 
 function setupPills() {
@@ -1566,8 +1605,10 @@ function init() {
     userItems: loadUserItems(),
     copyPhrases: loadCopyPhrases(),
     checklist: loadChecklistState(),
+    ui: loadUiState(),
     updatedAt: loadUpdatedAt(),
   };
+  applyUiState();
   renderTimeline();
   renderDays();
   renderBookings();
@@ -1587,6 +1628,7 @@ function init() {
   setupZoneToggle();
   updateNowNext();
   setupShareAndPrint();
+  setupUiToggles();
   setupDayNav();
   updateStickyOffset();
   setupBackToTop();
