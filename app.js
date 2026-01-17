@@ -721,7 +721,8 @@ function renderDayCarousel() {
         body.className = "event-card__body";
 
         if (event.flight) {
-          appendSectionTitle(body, "Flight");
+          const flightTitle = event.flightTitle ?? "Flight";
+          if (flightTitle) appendSectionTitle(body, flightTitle);
           const list = [];
           if (event.flight.airline) list.push(`Airline: ${event.flight.airline}`);
           if (event.flight.flightNumber) list.push(`Flight number: ${event.flight.flightNumber}`);
@@ -790,13 +791,17 @@ function renderDayCarousel() {
         }
 
         if (event.airports?.length) {
-          appendSectionTitle(body, "Airports");
+          const airportsTitle = event.airportsTitle ?? "Airports";
+          if (airportsTitle) appendSectionTitle(body, airportsTitle);
           const airports = document.createElement("div");
           airports.className = "event-card__airports";
+          const showAirportTitles = event.airportsShowTitles !== false;
           event.airports.forEach((airport) => {
             const airportCard = document.createElement("div");
             airportCard.className = "event-card__airport";
-            airportCard.innerHTML = `<p class="event-card__airport-title">${airport.code} — ${airport.name}</p>`;
+            if (showAirportTitles) {
+              airportCard.innerHTML = `<p class="event-card__airport-title">${airport.code} — ${airport.name}</p>`;
+            }
             const links = [];
             if (airport.map) links.push(airport.map);
             if (airport.live) links.push(airport.live);
