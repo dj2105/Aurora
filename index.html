@@ -1,7 +1,17 @@
-﻿    <meta name="theme-color" content="#0f2f33" />
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Aurora Trip Reference</title>
+    <meta name="theme-color" content="#0f2f33" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="assets/css/aurora-dashboard.css" />
+  </head>
+  <body>
     <div
       class="trip-hud"
       id="trip-hud"
@@ -42,10 +52,119 @@
         <button class="day-nav__today" id="jump-today" type="button">Jump to today</button>
       </nav>
     </div>
-        <div class="card" id="best-chance">
+
+    <main class="page">
+      <section class="hero">
+        <div class="hero-card">
+          <h1>Aurora Trip Reference</h1>
+          <p class="hero-subtitle">Fast, offline-friendly details for daily plans, maps, and aurora checks.</p>
+          <div class="hero-actions">
+            <a class="pill" href="#days">Plan</a>
+            <a class="pill" href="#maps">Maps</a>
+            <a class="pill" href="#checklist">Checklist</a>
+          </div>
+        </div>
+        <div class="hero-card now-next" aria-live="polite">
+          <h2>Now / Next</h2>
+          <div class="now-next__grid">
+            <div>
+              <p class="label">Local time</p>
+              <p class="value" id="current-time">--:--</p>
+            </div>
+            <div>
+              <p class="label">Location</p>
+              <p class="value" id="current-location">Tornio</p>
+            </div>
+          </div>
+          <div class="next-card">
+            <p class="label">Next up</p>
+            <p class="value" id="next-title">Loading…</p>
+            <p class="meta" id="next-meta"></p>
+          </div>
+          <div class="zone-toggle" role="group" aria-label="Time zone display">
+            <button type="button" class="zone-toggle__button is-active" data-zone="local">Local</button>
+            <button type="button" class="zone-toggle__button" data-zone="home">Home</button>
+            <button type="button" class="zone-toggle__button" data-zone="both">Both</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" aria-label="Search">
+        <label class="search" for="search">
+          <span>Search</span>
+          <input id="search" type="search" placeholder="Search events, bookings, addresses" />
+        </label>
+        <div id="alerts" class="alerts"></div>
+      </section>
+
+      <section class="section" id="days" aria-label="Trip days">
+        <header class="section-header">
+          <h2>Daily plan</h2>
+          <p>Tap a day chip above to jump to that section.</p>
+        </header>
+        <div class="day-list" id="days-list"></div>
+      </section>
+
+      <section class="section" id="best-chance" aria-label="Best aurora chance">
+        <header class="section-header">
+          <h2>Best chance tonight</h2>
+          <p>Check cloud cover first. If clear, step outside hourly.</p>
+        </header>
+        <div class="live-dashboard" data-day="2026-01-21"></div>
+      </section>
+
+      <section class="section" id="bookings" aria-label="Bookings and documents">
+        <header class="section-header">
+          <h2>Bookings</h2>
+          <p>Quick references for transport, stays, and confirmations.</p>
+        </header>
+        <div class="grid" id="bookings-grid"></div>
+      </section>
+
+      <section class="section" id="maps" aria-label="Maps hub">
+        <header class="section-header">
+          <h2>Maps</h2>
+          <p>Open each location in Google Maps in one tap.</p>
+        </header>
+        <div class="grid" id="maps-grid"></div>
+      </section>
+
+      <section class="section" id="checklist" aria-label="Checklist">
+        <header class="section-header">
+          <h2>Checklist</h2>
+          <p>Tap to tick off items. Saved locally for offline use.</p>
+        </header>
+        <div class="checklist" id="checklist-sections"></div>
+      </section>
+
+      <section class="section" id="emergency" aria-label="Emergency info">
+        <header class="section-header">
+          <h2>Emergency & Practical</h2>
+          <p>Copy-ready essentials for local services and accommodation.</p>
+        </header>
+        <div class="grid emergency-grid">
+          <div class="card">
+            <h3>Emergency (Finland)</h3>
+            <p class="meta">112 for urgent assistance.</p>
+          </div>
+          <div class="card">
+            <h3>Accommodation address</h3>
+            <p class="meta">1409 Jokivarrentie, 95520 Tornio, Finland</p>
+          </div>
+          <div class="card">
+            <h3>Taxi</h3>
+            <p class="meta">Call local dispatcher or use a ride app.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
     <div class="install-toast" id="install-toast" role="status" aria-live="polite" hidden></div>
     <div class="offline-toast" id="offline-toast" role="status" aria-live="polite" hidden></div>
 
+    <script type="module" src="app.js"></script>
     <script type="module" src="assets/js/aurora-dashboard.js"></script>
     <script type="module" src="assets/js/trip-hud.js"></script>
     <script type="module" src="assets/js/pwa.js"></script>
+  </body>
+</html>

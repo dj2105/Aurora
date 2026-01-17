@@ -139,7 +139,7 @@
       const tonightCloud = computeTonightCloudAverage(hourly, TIME_ZONE);
 
       if (elements.weatherNow) {
-        elements.weatherNow.textContent = `Temp ${formatMetric(temp, "Â°")} Â· Cloud ${formatMetric(cloudNow, "%")}`;
+        elements.weatherNow.textContent = `Temp ${formatMetric(temp, "°")} · Cloud ${formatMetric(cloudNow, "%")}`;
       }
       if (elements.cloudTonight) {
         elements.cloudTonight.textContent = `Tonight ${formatMetric(tonightCloud, "%")} cloud`;
@@ -148,23 +148,23 @@
       const kpObserved = parseKpObserved(kpObservedResult.data);
       const kpMax = parseKpForecastMax(kpForecastResult.data, 12);
       const kpNow = kpObserved?.kp ?? null;
-      const kpNowLabel = kpNow === null ? "â€”" : kpNow.toFixed(1);
+      const kpNowLabel = kpNow === null ? "—" : kpNow.toFixed(1);
       const score = Math.round(
         100 * (1 - (cloudNow ?? 100) / 100) * Math.min(1, Math.max(0, (kpNow ?? 0) / 6))
       );
 
       if (elements.auroraNow) {
-        elements.auroraNow.textContent = `Kp ${kpNowLabel} Â· 12h max ${kpMax === null ? "â€”" : kpMax.toFixed(1)}`;
+        elements.auroraNow.textContent = `Kp ${kpNowLabel} · 12h max ${kpMax === null ? "—" : kpMax.toFixed(1)}`;
       }
       if (elements.auroraScore) {
         const label = scoreLabel(score);
-        elements.auroraScore.textContent = `Aurora ${score} Â· ${label}`;
+        elements.auroraScore.textContent = `Aurora ${score} · ${label}`;
         elements.auroraScore.dataset.score = scoreTier(score);
       }
 
       const stale = weatherResult.stale || kpObservedResult.stale || kpForecastResult.stale;
       if (stale) {
-        setStatus("Using cached data â€” check connection", true);
+        setStatus("Using cached data — check connection", true);
       }
     } catch (error) {
       setStatus("Unable to load live data.", true);

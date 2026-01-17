@@ -182,7 +182,7 @@ function getNextHours(hourly, timeZone = TIME_ZONE, count = 12) {
 }
 
 function formatMetric(value, suffix = "") {
-  if (value === null || value === undefined || Number.isNaN(value)) return "â€”";
+  if (value === null || value === undefined || Number.isNaN(value)) return "—";
   return `${Math.round(value)}${suffix}`;
 }
 
