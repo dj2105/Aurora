@@ -443,13 +443,13 @@ function toDateValue(dateString, timeString) {
 }
 
 function formatEventTime(event) {
-  const timeValue = event?.time ?? event?.departTime ?? event?.startTime ?? null;
+  const timeValue = event?.time?.local ?? event?.time ?? event?.departTime ?? event?.startTime ?? null;
   if (!timeValue) return "";
   return timeValue;
 }
 
 function getEventSortMinutes(event) {
-  const timeValue = event?.time ?? event?.departTime ?? event?.startTime ?? null;
+  const timeValue = event?.time?.local ?? event?.time ?? event?.departTime ?? event?.startTime ?? null;
   return parseTimeToMinutes(timeValue);
 }
 
@@ -462,7 +462,7 @@ function renderTimeline() {
     link.type = "button";
     link.className = "day-chip";
     link.dataset.day = day.date;
-    const formatted = formatTripDate(day.date, day.timeZone).replace(",", "");
+    const formatted = day.shortLabel ?? formatTripDate(day.date, day.timeZone).replace(",", "");
     link.textContent = formatted;
     timelineEl.appendChild(link);
   });
@@ -519,6 +519,93 @@ function buildAuroraLink(date, time) {
   return url.toString();
 }
 
+function buildTimeRows(event) {
+  if (event?.timeWindow?.start || event?.timeWindow?.end) {
+    const start = event.timeWindow?.start ?? "";
+    const end = event.timeWindow?.end ?? "";
+    return [
+      {
+        label: "Window",
+        value: `${start}${start && end ? "–" : ""}${end}`,
+        tz: event.timeWindow?.tz ?? "",
+      },
+    ];
+  }
+  if (event?.arrivalTime?.local || event?.arrivalTime?.tz) {
+    return [
+      {
+        label: "Departs",
+        value: event.time?.local ?? "",
+        tz: event.time?.tz ?? "",
+      },
+      {
+        label: "Arrives",
+        value: event.arrivalTime?.local ?? "",
+        tz: event.arrivalTime?.tz ?? "",
+      },
+    ];
+  }
+  if (event?.time?.local || event?.time?.tz) {
+    return [
+      {
+        label: "Time",
+        value: event.time?.local ?? "",
+        tz: event.time?.tz ?? "",
+      },
+    ];
+  }
+  if (event?.time) {
+    return [
+      {
+        label: "Time",
+        value: event.time,
+        tz: event.timeZone ?? "",
+      },
+    ];
+  }
+  return [];
+}
+
+function appendSectionTitle(container, text) {
+  const title = document.createElement("p");
+  title.className = "event-card__section-title";
+  title.textContent = text;
+  container.appendChild(title);
+}
+
+function appendList(container, items) {
+  const list = document.createElement("ul");
+  list.className = "event-card__list";
+  items.forEach((item) => {
+    const li = document.createElement("li");
+    li.textContent = item;
+    list.appendChild(li);
+  });
+  container.appendChild(list);
+}
+
+function appendLinks(container, links) {
+  const list = document.createElement("ul");
+  list.className = "event-card__links";
+  links.forEach((link) => {
+    const li = document.createElement("li");
+    const anchor = document.createElement("a");
+    anchor.href = link.href;
+    anchor.target = "_blank";
+    anchor.rel = "noreferrer";
+    anchor.textContent = link.label;
+    li.appendChild(anchor);
+    if (link.hint) {
+      const hint = document.createElement("span");
+      hint.className = "event-card__hint";
+      hint.textContent = link.hint;
+      li.appendChild(hint);
+    }
+    list.appendChild(li);
+  });
+  container.appendChild(list);
+}
+
 function isAuroraEvent(event) {
   const title = event?.title?.toLowerCase() ?? "";
   const type = event?.type?.toLowerCase() ?? "";
@@ -573,13 +660,14 @@ function renderDayCarousel() {
     header.className = "day-panel__header";
     header.innerHTML = `
       <div class="day-panel__heading">
-        <h3 class="day-panel__title">${day.weekday}</h3>
+        <h3 class="day-panel__title">${day.label ?? day.weekday}</h3>
+        ${day.baseLocation ? `<p class="day-panel__subtitle">${day.baseLocation}</p>` : ""}
       </div>
     `;
 
     const eventList = document.createElement("div");
     eventList.className = "event-list";
-    const mergedEvents = getMergedEvents(day);
+    const mergedEvents = day.events ?? [];
     if (!mergedEvents.length) {
       const empty = document.createElement("p");
       empty.className = "meta";
@@ -587,143 +675,175 @@ function renderDayCarousel() {
       eventList.appendChild(empty);
     } else {
       mergedEvents.forEach((event) => {
-        const row = document.createElement("div");
-        row.className = "event-row";
+        const card = document.createElement("article");
+        card.className = "event-card";
 
-        const timeEl = document.createElement("div");
-        timeEl.className = "event-time";
-        timeEl.textContent = event.time ? formatEventTime(event) : "";
+        const headerRow = document.createElement("div");
+        headerRow.className = "event-card__header";
 
-        const content = document.createElement("div");
-        const metaRow = document.createElement("div");
-        metaRow.className = "event-meta-row";
+        const titleWrap = document.createElement("div");
+        titleWrap.className = "event-card__heading";
 
-        const titleEl = document.createElement("p");
-        titleEl.className = "event-title";
+        if (event.statusBadge) {
+          const status = document.createElement("span");
+          status.className = "event-card__status";
+          status.textContent = event.statusBadge;
+          titleWrap.appendChild(status);
+        }
+
+        const titleEl = document.createElement("h4");
+        titleEl.className = "event-card__title";
         titleEl.textContent = event.title;
+        titleWrap.appendChild(titleEl);
 
-        metaRow.appendChild(titleEl);
+        headerRow.appendChild(titleWrap);
 
-        if (isAuroraEvent(event)) {
-          const auroraLink = document.createElement("a");
-          auroraLink.className = "event-aurora";
-          auroraLink.href = buildAuroraLink(day.date, event.time);
-          auroraLink.target = "_blank";
-          auroraLink.rel = "noreferrer";
-          auroraLink.textContent = "🌌";
-          auroraLink.setAttribute("aria-label", "Open aurora forecast");
-          metaRow.appendChild(auroraLink);
+        const timeRows = buildTimeRows(event);
+        if (timeRows.length) {
+          const timeBlock = document.createElement("div");
+          timeBlock.className = "event-card__time";
+          timeRows.forEach((row) => {
+            const timeRow = document.createElement("div");
+            timeRow.className = "event-card__time-row";
+            timeRow.innerHTML = `
+              <span class="event-card__time-label">${row.label}</span>
+              <span class="event-card__time-value">${row.value}</span>
+              ${row.tz ? `<span class="event-card__time-zone">${row.tz}</span>` : ""}
+            `;
+            timeBlock.appendChild(timeRow);
+          });
+          headerRow.appendChild(timeBlock);
         }
 
-        if (event.source === "user") {
-          const removeButton = document.createElement("button");
-          removeButton.className = "event-remove";
-          removeButton.type = "button";
-          removeButton.dataset.userRemove = event.id;
-          removeButton.textContent = "Remove";
-          metaRow.appendChild(removeButton);
+        card.appendChild(headerRow);
+
+        const body = document.createElement("div");
+        body.className = "event-card__body";
+
+        if (event.flight) {
+          appendSectionTitle(body, "Flight");
+          const list = [];
+          if (event.flight.airline) list.push(`Airline: ${event.flight.airline}`);
+          if (event.flight.flightNumber) list.push(`Flight number: ${event.flight.flightNumber}`);
+          if (event.flight.seatNumbers) list.push(`Seat numbers: ${event.flight.seatNumbers}`);
+          if (event.flight.bookingRef) list.push(`Booking ref: ${event.flight.bookingRef}`);
+          if (list.length) appendList(body, list);
         }
 
-        content.appendChild(metaRow);
-        if (event.type === "transport") {
-          const transport = document.createElement("div");
-          transport.className = "event-transport";
+        if (event.seat) {
+          appendSectionTitle(body, "Seat");
+          const list = [];
+          if (event.seat.coach) list.push(`Coach: ${event.seat.coach}`);
+          if (event.seat.seats?.length) list.push(`Seats: ${event.seat.seats.join(", ")}`);
+          if (list.length) appendList(body, list);
+        }
 
-          const timing = buildTransportTiming(event);
-          if (timing) {
-            const timingRow = document.createElement("div");
-            timingRow.className = "event-transport__row";
-            timingRow.textContent = timing;
-            transport.appendChild(timingRow);
+        if (event.station) {
+          appendSectionTitle(body, "Station");
+          const list = [];
+          if (event.station.depart) list.push(`Depart: ${event.station.depart}`);
+          if (event.station.arrive) list.push(`Arrive: ${event.station.arrive}`);
+          if (list.length) appendList(body, list);
+        }
+
+        if (event.booking) {
+          appendSectionTitle(body, "Booking");
+          const list = [];
+          if (event.booking.provider) list.push(`Provider: ${event.booking.provider}`);
+          if (event.booking.orderNumber) list.push(`Order number: ${event.booking.orderNumber}`);
+          if (list.length) appendList(body, list);
+          if (event.booking.ticketLinks?.length) {
+            appendSectionTitle(body, "Tickets");
+            appendLinks(body, event.booking.ticketLinks);
           }
+        }
 
-          const numberRow = document.createElement("div");
-          numberRow.className = "event-transport__row";
-          const transportLink = buildTransportStatusLink(event);
-          if (event.flightNumber || event.transportNumber) {
-            const label = event.flightNumber ?? event.transportNumber;
-            if (transportLink) {
-              const link = document.createElement("a");
-              link.className = "event-transport__link";
-              link.href = transportLink;
-              link.target = "_blank";
-              link.rel = "noreferrer";
-              link.textContent = label;
-              numberRow.appendChild(link);
-            } else {
-              const text = document.createElement("span");
-              text.textContent = label;
-              numberRow.appendChild(text);
+        if (event.place) {
+          appendSectionTitle(body, "Place");
+          const list = [];
+          if (event.place.name) list.push(`Name: ${event.place.name}`);
+          if (event.place.address) list.push(`Address: ${event.place.address}`);
+          if (list.length) appendList(body, list);
+          if (event.place.phone) {
+            appendSectionTitle(body, "Contact");
+            appendLinks(body, [event.place.phone]);
+          }
+          if (event.place.maps?.length) {
+            appendSectionTitle(body, "Maps");
+            appendLinks(body, event.place.maps);
+          }
+        }
+
+        if (event.details?.length) {
+          appendSectionTitle(body, "Details");
+          appendList(body, event.details);
+        }
+
+        if (event.notes?.length) {
+          appendSectionTitle(body, "Notes");
+          appendList(body, event.notes);
+        }
+
+        if (event.links?.length) {
+          appendSectionTitle(body, "Links");
+          appendLinks(body, event.links);
+        }
+
+        if (event.airports?.length) {
+          appendSectionTitle(body, "Airports");
+          const airports = document.createElement("div");
+          airports.className = "event-card__airports";
+          event.airports.forEach((airport) => {
+            const airportCard = document.createElement("div");
+            airportCard.className = "event-card__airport";
+            airportCard.innerHTML = `<p class="event-card__airport-title">${airport.code} — ${airport.name}</p>`;
+            const links = [];
+            if (airport.map) links.push(airport.map);
+            if (airport.live) links.push(airport.live);
+            if (links.length) {
+              appendLinks(airportCard, links);
             }
-          }
-          if (event.seatInfo) {
-            const seat = document.createElement("span");
-            seat.textContent = event.seatInfo;
-            numberRow.appendChild(seat);
-          }
-          if (numberRow.childNodes.length) {
-            transport.appendChild(numberRow);
-          }
-
-          const stopsRow = document.createElement("div");
-          stopsRow.className = "event-transport__row";
-          if (event.fromLabel) {
-            const from = document.createElement("span");
-            from.className = "event-transport__stop";
-            if (event.fromMap) {
-              const link = document.createElement("a");
-              link.href = event.fromMap;
-              link.target = "_blank";
-              link.rel = "noreferrer";
-              link.textContent = event.fromLabel;
-              from.append("From ", link);
-            } else {
-              from.textContent = `From ${event.fromLabel}`;
-            }
-            stopsRow.appendChild(from);
-          }
-          if (event.toLabel) {
-            const to = document.createElement("span");
-            to.className = "event-transport__stop";
-            if (event.toMap) {
-              const link = document.createElement("a");
-              link.href = event.toMap;
-              link.target = "_blank";
-              link.rel = "noreferrer";
-              link.textContent = event.toLabel;
-              to.append("To ", link);
-            } else {
-              to.textContent = `To ${event.toLabel}`;
-            }
-            stopsRow.appendChild(to);
-          }
-          if (stopsRow.childNodes.length) {
-            transport.appendChild(stopsRow);
-          }
-
-          content.appendChild(transport);
+            airports.appendChild(airportCard);
+          });
+          body.appendChild(airports);
         }
-        if (event.detail) {
-          const detail = document.createElement("p");
-          detail.className = "event-note";
-          detail.textContent = event.detail;
-          content.appendChild(detail);
+
+        if (event.webFormatTips?.length) {
+          appendSectionTitle(body, "Web format tips");
+          appendList(body, event.webFormatTips);
         }
-        row.appendChild(timeEl);
-        row.appendChild(content);
-        eventList.appendChild(row);
+
+        card.appendChild(body);
+        eventList.appendChild(card);
       });
     }
 
-    const addButton = document.createElement("button");
-    addButton.className = "event-add";
-    addButton.type = "button";
-    addButton.dataset.addDay = day.date;
-    addButton.textContent = "+ event";
-
     panel.appendChild(header);
+    if (day.daylight?.show) {
+      const daylight = document.createElement("section");
+      daylight.className = "daylight-card";
+      daylight.innerHTML = `
+        <p class="daylight-card__title">Daylight</p>
+        ${day.daylight.note ? `<p class="daylight-card__note">${day.daylight.note}</p>` : ""}
+      `;
+      if (day.daylight.sources?.length) {
+        const list = document.createElement("ul");
+        list.className = "daylight-card__links";
+        day.daylight.sources.forEach((source) => {
+          const item = document.createElement("li");
+          const link = document.createElement("a");
+          link.href = source.href;
+          link.target = "_blank";
+          link.rel = "noreferrer";
+          link.textContent = source.label;
+          item.appendChild(link);
+          list.appendChild(item);
+        });
+        daylight.appendChild(list);
+      }
+      panel.appendChild(daylight);
+    }
     panel.appendChild(eventList);
-    panel.appendChild(addButton);
     carouselTrack.appendChild(panel);
   });
 }
