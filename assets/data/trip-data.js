@@ -7,6 +7,13 @@ const days = [
     timeZone: "Europe/Helsinki",
     events: [
       {
+        time: "04:30",
+        title: "Leave for Dublin airport",
+        detail: "Pre-trip departure for the flight to Finland.",
+        type: "transport",
+        icon: "plane",
+      },
+      {
         time: "14:30",
         title: "Arrive in Rovaniemi",
         detail: "Pick up rental and stock essentials.",
@@ -129,7 +136,7 @@ const days = [
   {
     date: "2026-01-24",
     weekday: "Saturday",
-    location: "Tornio \u2192 Travel",
+    location: "Tornio → Travel",
     notes: "Check-out + travel home.",
     timeZone: "Europe/Helsinki",
     events: [
@@ -146,6 +153,7 @@ const days = [
 
 const bookings = [
   {
+    id: "booking-stay",
     category: "Accommodation",
     title: "Riverside Restplace",
     ref: "Booking: 1 chalet",
@@ -153,13 +161,46 @@ const bookings = [
     address: "1409 Jokivarrentie, 95520 Tornio",
     contact: "+358 40 670 2904",
     notes: "Keys in lockbox.",
+    startDate: "2026-01-20",
+    startTime: "15:00",
+    endDate: "2026-01-24",
+    endTime: "11:00",
+    startLabel: "Riverside Restplace",
+    endLabel: "Riverside Restplace",
+    startMap: "https://www.google.com/maps/search/?api=1&query=1409+Jokivarrentie+95520+Tornio",
+    endMap: "https://www.google.com/maps/search/?api=1&query=1409+Jokivarrentie+95520+Tornio",
   },
   {
+    id: "booking-train-outbound",
     category: "Transport",
-    title: "VR Trains (RVN \u2192 Tornio)",
+    title: "VR Trains (RVN → Tornio)",
     ref: "Order: F6010236161049",
     times: "05:15 Dep Rovaniemi | 08:21 Arr Tornio",
     notes: "Change at Kemi. Seats upstairs.",
+    startDate: "2026-01-20",
+    startTime: "05:15",
+    endDate: "2026-01-20",
+    endTime: "08:21",
+    startLabel: "Rovaniemi Railway Station",
+    endLabel: "Tornio-Itäinen Station",
+    startMap: "https://www.google.com/maps/search/?api=1&query=Rovaniemi+Railway+Station",
+    endMap: "https://www.google.com/maps/search/?api=1&query=Tornio-Itäinen+railway+station",
+  },
+  {
+    id: "booking-train-return",
+    category: "Transport",
+    title: "VR Trains (Kemi → Rovaniemi)",
+    ref: "Return: Coach 3, Seats 12A/12B",
+    times: "10:11 Dep Kemi | 12:52 Arr Rovaniemi",
+    notes: "Keep tickets handy for the return ride.",
+    startDate: "2026-01-24",
+    startTime: "10:11",
+    endDate: "2026-01-24",
+    endTime: "12:52",
+    startLabel: "Kemi Railway Station",
+    endLabel: "Rovaniemi Railway Station",
+    startMap: "https://www.google.com/maps/search/?api=1&query=Kemi+railway+station",
+    endMap: "https://www.google.com/maps/search/?api=1&query=Rovaniemi+Railway+Station",
   },
 ];
 
@@ -202,13 +243,25 @@ const checklist = [
 
 const maps = [
   {
-    label: "Riverside Restplace (Base)",
-    query: "1409 Jokivarrentie, 95520 Tornio, Finland",
+    label: "Riverside Restplace",
+    query: "1409 Jokivarrentie, 95520 Tornio",
   },
-  { label: "K-Citymarket Tornio", query: "K-Citymarket Tornio" },
-  { label: "Rovaniemi Railway Station", query: "Rovaniemi Railway Station" },
-  { label: "Tornio bus station", query: "Tornio bus station" },
-  { label: "Aurora dark spot", query: "Tornio dark sky spot" },
+  {
+    label: "K-Citymarket Tornio",
+    query: "K-Citymarket Tornio",
+  },
+  {
+    label: "Tornio-Itäinen Station",
+    query: "Tornio-Itäinen railway station",
+  },
+  {
+    label: "Kemi Station",
+    query: "Kemi railway station",
+  },
+  {
+    label: "Rovaniemi Station",
+    query: "Rovaniemi railway station",
+  },
 ];
 
 export { bookings, checklist, days, maps };
