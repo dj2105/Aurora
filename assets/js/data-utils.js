@@ -1,4 +1,8 @@
-﻿const TIME_ZONE = "Europe/Helsinki";
+const TIME_ZONE = "Europe/Helsinki";
+
+function isOffline() {
+  return typeof navigator !== "undefined" && navigator && !navigator.onLine;
+}
 
 function safeLocalStorageGet(key) {
   try {
@@ -68,6 +72,14 @@ async function fetchWithCache({ key, url, ttl, force = false }) {
 
   if (cacheFresh && !force) {
     return { data: cached.data, stale: false, fromCache: true };
+  }
+
+  if (cached && isOffline()) {
+    return { data: cached.data, stale: true, fromCache: true, offline: true };
+  }
+
+  if (isOffline()) {
+    throw new Error("Offline");
   }
 
   try {
@@ -182,7 +194,7 @@ function getNextHours(hourly, timeZone = TIME_ZONE, count = 12) {
 }
 
 function formatMetric(value, suffix = "") {
-  if (value === null || value === undefined || Number.isNaN(value)) return "—";
+  if (value === null || value === undefined || Number.isNaN(value)) return "\u2014";
   return `${Math.round(value)}${suffix}`;
 }
 
@@ -202,6 +214,7 @@ function scoreTier(score) {
 
 export {
   TIME_ZONE,
+  isOffline,
   safeLocalStorageGet,
   safeLocalStorageSet,
   buildWeatherUrl,

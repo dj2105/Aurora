@@ -1,6 +1,7 @@
-﻿(() => {
+(() => {
   const toast = document.getElementById("install-toast");
   const offlineToast = document.getElementById("offline-toast");
+  const updateToast = document.getElementById("update-toast");
   const DISMISS_KEY = "aurora-install-dismissed";
 
   function readDismissed() {
@@ -59,11 +60,55 @@
     }, 4000);
   }
 
-  function registerServiceWorker() {
-    if (!("serviceWorker" in navigator)) return;
-    navigator.serviceWorker.register("./sw.js").catch((error) => {
-      console.warn("Service worker registration failed", error);
+  function showUpdateToast(registration) {
+    if (!updateToast || !registration?.waiting) return;
+    updateToast.innerHTML = "";
+    const message = document.createElement("span");
+    message.textContent = "Update available";
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = "Refresh";
+    button.addEventListener("click", () => {
+      registration.waiting?.postMessage({ type: "SKIP_WAITING" });
     });
+    updateToast.appendChild(message);
+    updateToast.appendChild(button);
+    updateToast.hidden = false;
+  }
+
+  function setupUpdateHandling(registration) {
+    if (!registration) return;
+    if (registration.waiting) {
+      showUpdateToast(registration);
+    }
+    registration.addEventListener("updatefound", () => {
+      const installing = registration.installing;
+      if (!installing) return;
+      installing.addEventListener("statechange", () => {
+        if (installing.state === "installed" && navigator.serviceWorker.controller) {
+          showUpdateToast(registration);
+        }
+      });
+    });
+
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      window.location.reload();
+    });
+  }
+
+  async function registerServiceWorker() {
+    if (!("serviceWorker" in navigator)) return null;
+    const baseHref = document.querySelector("base")?.getAttribute("href") ?? "/";
+    const baseUrl = new URL(baseHref, window.location.origin);
+    const swUrl = new URL("sw.js", baseUrl);
+    try {
+      const registration = await navigator.serviceWorker.register(swUrl.href);
+      setupUpdateHandling(registration);
+      return registration;
+    } catch (error) {
+      console.warn("Service worker registration failed", error);
+    }
+    return null;
   }
 
   function setupInstallPrompt() {
@@ -110,7 +155,7 @@
 
   function setupOfflineHandling() {
     window.addEventListener("offline", () => {
-      showOfflineToast("Offline — showing cached content");
+      showOfflineToast("Offline \u2014 showing cached content");
     });
     window.addEventListener("online", () => {
       showOfflineToast("Back online");

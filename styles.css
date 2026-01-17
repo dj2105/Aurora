@@ -50,6 +50,7 @@ body {
   background: linear-gradient(145deg, var(--bg), var(--surface-strong));
   color: var(--text);
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 a {
@@ -151,6 +152,13 @@ html {
   text-decoration: none;
   cursor: pointer;
   font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.hud-action__icon {
+  font-size: 0.9rem;
 }
 
 .hud-status {
@@ -243,6 +251,9 @@ html {
   background: var(--surface);
   text-decoration: none;
   font-size: 0.8rem;
+  color: inherit;
+  cursor: pointer;
+  font-family: inherit;
 }
 
 .now-next__grid {
@@ -317,6 +328,20 @@ html {
 .section-header p {
   margin: 0;
   color: var(--text-muted);
+}
+
+.section-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-top: var(--space-sm);
+}
+
+.section-note {
+  margin: var(--space-xs) 0 0;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  min-height: 1rem;
 }
 
 .search {
@@ -483,7 +508,20 @@ html {
 }
 
 .checklist-section h3 {
-  margin: 0 0 var(--space-sm);
+  margin: 0;
+}
+
+.checklist-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.checklist-progress {
+  font-size: 0.75rem;
+  color: var(--text-muted);
 }
 
 .checklist-item {
@@ -503,7 +541,9 @@ html {
 }
 
 .install-toast,
-.offline-toast {
+.offline-toast,
+.update-toast,
+.action-toast {
   position: fixed;
   left: 50%;
   transform: translateX(-50%);
@@ -519,13 +559,15 @@ html {
   z-index: 50;
 }
 
-.install-toast button {
+.install-toast button,
+.update-toast button {
   border: none;
   background: var(--accent-soft);
   color: var(--text);
   padding: 0.3rem 0.7rem;
   border-radius: var(--radius-pill);
   cursor: pointer;
+  font-family: inherit;
 }
 
 .offline-page {
@@ -542,6 +584,117 @@ html {
   padding: var(--space-lg);
   text-align: center;
   box-shadow: var(--shadow-md);
+}
+
+.offline-card .meta {
+  margin: var(--space-sm) 0 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.offline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  justify-content: center;
+  margin-top: var(--space-sm);
+}
+
+.today-card {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  padding: var(--space-md);
+  display: grid;
+  gap: var(--space-md);
+  margin-top: var(--space-md);
+}
+
+.today-card__header {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-sm);
+}
+
+.today-card__list {
+  margin: 0;
+  padding-left: 1rem;
+  display: grid;
+  gap: 0.35rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.today-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.back-to-top {
+  position: fixed;
+  right: 1rem;
+  bottom: 5rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  padding: 0.45rem 0.9rem;
+  cursor: pointer;
+  z-index: 40;
+  box-shadow: var(--shadow-sm);
+}
+
+@media (max-width: 420px) {
+  .trip-hud__status {
+    gap: var(--space-xs);
+  }
+
+  .hud-times {
+    gap: var(--space-sm);
+  }
+
+  .hud-time {
+    font-size: 0.75rem;
+  }
+
+  .hud-chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .hud-chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  .hud-actions {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .hud-actions::-webkit-scrollbar {
+    display: none;
+  }
+
+  .hud-action {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.6rem;
+  }
+
+  .today-card__header {
+    grid-template-columns: 1fr;
+  }
+
+  .day-nav {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .day-nav__today {
+    align-self: stretch;
+  }
 }
 
 @media (min-width: 900px) {

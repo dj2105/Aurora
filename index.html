@@ -3,13 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <base href="/Aurora/" />
     <title>Aurora Trip Reference</title>
     <meta name="theme-color" content="#0f2f33" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
+    <link rel="manifest" href="manifest.json" />
     <link rel="stylesheet" href="styles.css" />
     <link rel="stylesheet" href="assets/css/aurora-dashboard.css" />
+    <link rel="stylesheet" href="print.css" media="print" />
   </head>
   <body>
     <div
@@ -40,10 +43,22 @@
           <button class="hud-chip hud-chip--accent" type="button" data-role="aurora-score">Aurora --</button>
         </div>
         <div class="hud-actions" role="group" aria-label="Quick actions">
-          <a class="hud-action" data-action="maps" href="#" target="_blank" rel="noreferrer">Maps</a>
-          <button class="hud-action" type="button" data-action="copy">Accommodation</button>
-          <a class="hud-action" data-action="supermarket" href="#" target="_blank" rel="noreferrer">Supermarket</a>
-          <a class="hud-action" data-action="best-chance" href="#">Best chance</a>
+          <a class="hud-action" data-action="maps" href="#" target="_blank" rel="noreferrer">
+            <span class="hud-action__icon" aria-hidden="true">🗺️</span>
+            <span class="hud-action__label">Maps</span>
+          </a>
+          <button class="hud-action" type="button" data-action="copy">
+            <span class="hud-action__icon" aria-hidden="true">🏠</span>
+            <span class="hud-action__label">Stay</span>
+          </button>
+          <a class="hud-action" data-action="supermarket" href="#" target="_blank" rel="noreferrer">
+            <span class="hud-action__icon" aria-hidden="true">🛒</span>
+            <span class="hud-action__label">Market</span>
+          </a>
+          <a class="hud-action" data-action="best-chance" href="#">
+            <span class="hud-action__icon" aria-hidden="true">✨</span>
+            <span class="hud-action__label">Aurora</span>
+          </a>
         </div>
         <p class="hud-status" data-role="hud-status"></p>
       </section>
@@ -62,6 +77,8 @@
             <a class="pill" href="#days">Plan</a>
             <a class="pill" href="#maps">Maps</a>
             <a class="pill" href="#checklist">Checklist</a>
+            <button class="pill" type="button" id="share-trip">Share trip</button>
+            <button class="pill" type="button" id="print-trip">Print / Save PDF</button>
           </div>
         </div>
         <div class="hero-card now-next" aria-live="polite">
@@ -95,6 +112,34 @@
           <input id="search" type="search" placeholder="Search events, bookings, addresses" />
         </label>
         <div id="alerts" class="alerts"></div>
+      </section>
+
+      <section class="section" id="today" aria-label="Today plan">
+        <header class="section-header">
+          <h2>Today</h2>
+          <p>Fast access to the next steps, maps, and today’s highlights.</p>
+        </header>
+        <div class="today-card" id="today-card">
+          <div class="today-card__header">
+            <div>
+              <p class="label">Date</p>
+              <p class="value" id="today-date">--</p>
+            </div>
+            <div>
+              <p class="label">Location</p>
+              <p class="value" id="today-location">--</p>
+            </div>
+          </div>
+          <div>
+            <p class="label">Next up</p>
+            <ul class="today-card__list" id="today-events"></ul>
+          </div>
+          <div class="today-card__actions">
+            <button class="pill" type="button" id="today-jump">Jump to today</button>
+            <a class="pill" id="today-map" href="#" target="_blank" rel="noreferrer">Open Base Map</a>
+            <a class="pill" id="today-supermarket" href="#" target="_blank" rel="noreferrer">Open Supermarket</a>
+          </div>
+        </div>
       </section>
 
       <section class="section" id="days" aria-label="Trip days">
@@ -133,6 +178,12 @@
         <header class="section-header">
           <h2>Checklist</h2>
           <p>Tap to tick off items. Saved locally for offline use.</p>
+          <div class="section-actions">
+            <button class="pill" type="button" id="export-checklist">Export checklist</button>
+            <button class="pill" type="button" id="import-checklist">Import checklist</button>
+            <input type="file" id="import-checklist-input" accept="application/json" hidden />
+          </div>
+          <p class="section-note" id="checklist-note" role="status" aria-live="polite"></p>
         </header>
         <div class="checklist" id="checklist-sections"></div>
       </section>
@@ -161,6 +212,11 @@
 
     <div class="install-toast" id="install-toast" role="status" aria-live="polite" hidden></div>
     <div class="offline-toast" id="offline-toast" role="status" aria-live="polite" hidden></div>
+    <div class="update-toast" id="update-toast" role="status" aria-live="polite" hidden></div>
+    <div class="action-toast" id="action-toast" role="status" aria-live="polite" hidden></div>
+    <button class="back-to-top" id="back-to-top" type="button" aria-label="Back to top" hidden>
+      Back to top
+    </button>
 
     <script type="module" src="app.js"></script>
     <script type="module" src="assets/js/aurora-dashboard.js"></script>

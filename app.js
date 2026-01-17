@@ -1,219 +1,7 @@
-const days = [
-  {
-    date: "2026-01-19",
-    weekday: "Monday",
-    location: "Rovaniemi",
-    notes: "Arrival day. Pick up supplies and settle in.",
-    timeZone: "Europe/Helsinki",
-    events: [
-      {
-        time: "14:30",
-        title: "Arrive in Rovaniemi",
-        detail: "Pick up rental and stock essentials.",
-        type: "transport",
-        icon: "plane",
-      },
-      {
-        time: "18:00",
-        title: "Grocery run",
-        detail: "Grab dinners + snacks for the week.",
-        type: "food",
-        icon: "shopping-cart",
-      },
-    ],
-  },
-  {
-    date: "2026-01-20",
-    weekday: "Tuesday",
-    location: "Tornio",
-    notes: "Travel day to the chalet.",
-    timeZone: "Europe/Helsinki",
-    events: [
-      {
-        time: "05:15",
-        title: "VR Train to Tornio",
-        detail: "Change at Kemi. Seats upstairs.",
-        type: "transport",
-        icon: "train",
-      },
-      {
-        time: "15:00",
-        title: "Check-in",
-        detail: "Keys in lockbox. Warm up and unpack.",
-        type: "logistics",
-        icon: "home",
-      },
-      {
-        time: "20:00",
-        title: "Aurora check",
-        detail: "Check cloud cover, step outside hourly.",
-        type: "activity",
-        icon: "star",
-      },
-    ],
-  },
-  {
-    date: "2026-01-21",
-    weekday: "Wednesday",
-    location: "Tornio",
-    notes: "First full chalet day. Aurora watch tonight.",
-    timeZone: "Europe/Helsinki",
-    events: [
-      {
-        time: "10:00",
-        title: "Daylight window",
-        detail: "Best light for photos.",
-        type: "info",
-        icon: "sun",
-      },
-      {
-        time: "20:00",
-        title: "Aurora watch",
-        detail: "Check cloud cover first. Go outside every hour.",
-        type: "activity",
-        icon: "star",
-      },
-    ],
-  },
-  {
-    date: "2026-01-22",
-    weekday: "Thursday",
-    location: "Tornio",
-    notes: "Flexible day. Plan supplies + sauna night.",
-    timeZone: "Europe/Helsinki",
-    events: [
-      {
-        time: "11:00",
-        title: "Slow morning + brunch",
-        detail: "Warm up, check weather, plan afternoon.",
-        type: "food",
-        icon: "coffee",
-      },
-      {
-        time: "18:00",
-        title: "Sauna + dinner",
-        detail: "Keep gear ready for a late aurora check.",
-        type: "activity",
-        icon: "flame",
-      },
-      {
-        time: "21:00",
-        title: "Aurora watch",
-        detail: "Check cloud cover first. Go outside every hour.",
-        type: "activity",
-        icon: "star",
-      },
-    ],
-  },
-  {
-    date: "2026-01-23",
-    weekday: "Friday",
-    location: "Tornio",
-    notes: "Backup aurora night + restock supplies.",
-    timeZone: "Europe/Helsinki",
-    events: [
-      {
-        time: "12:00",
-        title: "Supermarket top-up",
-        detail: "Grab snacks + hot drinks for late night.",
-        type: "food",
-        icon: "shopping-cart",
-      },
-      {
-        time: "20:30",
-        title: "Aurora watch",
-        detail: "Clear skies? Head to best spot early.",
-        type: "activity",
-        icon: "star",
-      },
-    ],
-  },
-  {
-    date: "2026-01-24",
-    weekday: "Saturday",
-    location: "Tornio → Travel",
-    notes: "Check-out + travel home.",
-    timeZone: "Europe/Helsinki",
-    events: [
-      {
-        time: "09:00",
-        title: "Pack + check-out",
-        detail: "Final sweep, charge power banks.",
-        type: "logistics",
-        icon: "bag",
-      },
-    ],
-  },
-];
-
-const bookings = [
-  {
-    category: "Accommodation",
-    title: "Riverside Restplace",
-    ref: "Booking: 1 chalet",
-    times: "Check-in: 15:00 Jan 20 | Out: Jan 24",
-    address: "1409 Jokivarrentie, 95520 Tornio",
-    contact: "+358 40 670 2904",
-    notes: "Keys in lockbox.",
-  },
-  {
-    category: "Transport",
-    title: "VR Trains (RVN → Tornio)",
-    ref: "Order: F6010236161049",
-    times: "05:15 Dep Rovaniemi | 08:21 Arr Tornio",
-    notes: "Change at Kemi. Seats upstairs.",
-  },
-];
-
-const checklist = [
-  {
-    category: "Packing: Layers",
-    items: [
-      { label: "Thermals + base layers", checked: false },
-      { label: "Mid layers (fleece, wool)", checked: false },
-      { label: "Waterproof outer shell", checked: false },
-    ],
-  },
-  {
-    category: "Packing: Feet",
-    items: [
-      { label: "Waterproof boots", checked: false },
-      { label: "Wool socks", checked: false },
-      { label: "Spare insoles", checked: false },
-    ],
-  },
-  {
-    category: "Daily carry",
-    items: [
-      { label: "Power bank + cables", checked: false },
-      { label: "Head torch", checked: false },
-      { label: "Tickets + confirmations", checked: false },
-      { label: "Water + snacks", checked: false },
-    ],
-  },
-  {
-    category: "Food shop (Tornio)",
-    items: [
-      { label: "Breakfast: yoghurt, oats, coffee", checked: false },
-      { label: "Lunch: soups, smoked salmon, rye bread", checked: false },
-      { label: "Dinner: pasta, jar sauce, frozen veg", checked: false },
-      { label: "Sauna snacks: chocolate, crisps, berries", checked: false },
-    ],
-  },
-];
-
-const maps = [
-  {
-    label: "Riverside Restplace (Base)",
-    query: "1409 Jokivarrentie, 95520 Tornio, Finland",
-  },
-  { label: "K-Citymarket Tornio", query: "K-Citymarket Tornio" },
-  { label: "Rovaniemi Railway Station", query: "Rovaniemi Railway Station" },
-  { label: "Tornio bus station", query: "Tornio bus station" },
-  { label: "Aurora dark spot", query: "Tornio dark sky spot" },
-];
+import { bookings, checklist, days, maps } from "./assets/data/trip-data.js";
 
 const storageKey = "aurora-checklist";
+const LAST_UPDATED_KEY = "aurora-last-updated";
 let displayZone = "local";
 let dayObserver;
 
@@ -229,6 +17,19 @@ const nowTimeEl = document.getElementById("current-time");
 const nowLocationEl = document.getElementById("current-location");
 const nextTitleEl = document.getElementById("next-title");
 const nextMetaEl = document.getElementById("next-meta");
+const todayDateEl = document.getElementById("today-date");
+const todayLocationEl = document.getElementById("today-location");
+const todayEventsEl = document.getElementById("today-events");
+const todayJumpButton = document.getElementById("today-jump");
+const todayMapLink = document.getElementById("today-map");
+const todaySupermarketLink = document.getElementById("today-supermarket");
+const shareButton = document.getElementById("share-trip");
+const printButton = document.getElementById("print-trip");
+const exportChecklistButton = document.getElementById("export-checklist");
+const importChecklistButton = document.getElementById("import-checklist");
+const importChecklistInput = document.getElementById("import-checklist-input");
+const backToTopButton = document.getElementById("back-to-top");
+const actionToast = document.getElementById("action-toast");
 
 function safeReadStorage(key) {
   try {
@@ -270,7 +71,7 @@ function getDateString(timeZone) {
 
 function formatEventTime(event) {
   if (displayZone === "home") {
-    return event.home_time ? `${event.home_time} Home` : "—";
+    return event.home_time ? `${event.home_time} Home` : "\u2014";
   }
   if (displayZone === "both") {
     return `${event.time} Local${event.home_time ? `\n${event.home_time} Home` : ""}`;
@@ -308,7 +109,7 @@ function renderDays() {
     const header = document.createElement("div");
     header.className = "day-header";
     header.innerHTML = `
-      <h3>${day.weekday} · ${day.date} · ${day.location}</h3>
+      <h3>${day.weekday} \u00B7 ${day.date} \u00B7 ${day.location}</h3>
       ${day.notes ? `<p class="day-meta">${day.notes}</p>` : ""}
     `;
 
@@ -387,20 +188,24 @@ function buildDayJumpNav(section) {
   const nav = section.querySelector(".day-jump");
   if (!nav) return;
   nav.innerHTML = "";
-  const targets = Array.from(section.querySelectorAll("[data-toc][id]"));
-  targets.forEach((target) => {
-    const link = document.createElement("a");
-    link.href = `#${target.id}`;
-    link.textContent = target.dataset.toc;
-    nav.appendChild(link);
-  });
+  const targets = Array.from(section.querySelectorAll("[data-toc][id]")).map((target) => ({
+    id: target.id,
+    label: target.dataset.toc,
+  }));
 
   const globalTargets = [
     { id: "checklist", label: "Checklist" },
     { id: "emergency", label: "Emergency" },
-  ];
-  globalTargets.forEach((item) => {
-    if (!document.getElementById(item.id)) return;
+  ].filter((item) => document.getElementById(item.id));
+
+  const allTargets = [...targets, ...globalTargets];
+  if (allTargets.length < 2) {
+    nav.hidden = true;
+    return;
+  }
+  nav.hidden = false;
+
+  allTargets.forEach((item) => {
     const link = document.createElement("a");
     link.href = `#${item.id}`;
     link.textContent = item.label;
@@ -442,11 +247,13 @@ function updateNowNext() {
 
   if (nextEvent) {
     nextTitleEl.textContent = nextEvent.title;
-    nextMetaEl.textContent = `${nextDay.weekday} · ${nextEvent.time} · ${nextDay.location}`;
+    nextMetaEl.textContent = `${nextDay.weekday} \u00B7 ${nextEvent.time} \u00B7 ${nextDay.location}`;
   } else {
     nextTitleEl.textContent = "No more events today";
     nextMetaEl.textContent = "";
   }
+
+  renderTodayCard();
 }
 
 function renderBookings() {
@@ -497,7 +304,24 @@ function renderChecklist() {
   checklist.forEach((section, sectionIndex) => {
     const sectionEl = document.createElement("div");
     sectionEl.className = "checklist-section";
-    sectionEl.innerHTML = `<h3>${section.category}</h3>`;
+    const header = document.createElement("div");
+    header.className = "checklist-header";
+    const title = document.createElement("h3");
+    title.textContent = section.category;
+    const progress = document.createElement("span");
+    progress.className = "checklist-progress";
+    header.appendChild(title);
+    header.appendChild(progress);
+    sectionEl.appendChild(header);
+
+    const updateProgress = () => {
+      const total = section.items.length;
+      const done = section.items.reduce((count, item, itemIndex) => {
+        const checked = saved?.[sectionIndex]?.[itemIndex] ?? item.checked;
+        return count + (checked ? 1 : 0);
+      }, 0);
+      progress.textContent = `${done}/${total} done`;
+    };
 
     section.items.forEach((item, itemIndex) => {
       const id = `check-${sectionIndex}-${itemIndex}`;
@@ -512,6 +336,7 @@ function renderChecklist() {
         if (!saved[sectionIndex]) saved[sectionIndex] = {};
         saved[sectionIndex][itemIndex] = checkbox.checked;
         safeWriteStorage(storageKey, JSON.stringify(saved));
+        updateProgress();
       });
 
       const text = document.createElement("span");
@@ -521,6 +346,7 @@ function renderChecklist() {
       sectionEl.appendChild(wrapper);
     });
 
+    updateProgress();
     checklistSections.appendChild(sectionEl);
   });
 }
@@ -558,6 +384,181 @@ function setupZoneToggle() {
       updateNowNext();
     });
   });
+}
+
+function renderTodayCard() {
+  if (!todayDateEl || !todayLocationEl || !todayEventsEl) return;
+  const today = getDateString("Europe/Helsinki");
+  const todayDay = days.find((day) => day.date === today) ?? days[0];
+  const { hour, minute } = getTimeParts("Europe/Helsinki");
+  const nowMinutes = hour * 60 + minute;
+
+  todayDateEl.textContent = todayDay.date;
+  todayLocationEl.textContent = todayDay.location;
+  todayEventsEl.innerHTML = "";
+
+  const upcomingEvents = [];
+  days.forEach((day) => {
+    if (day.date < today) return;
+    day.events.forEach((event) => {
+      const eventMinutes = Number.parseInt(event.time.split(":")[0], 10) * 60 +
+        Number.parseInt(event.time.split(":")[1], 10);
+      if (day.date === today && eventMinutes < nowMinutes) return;
+      upcomingEvents.push({ day, event });
+    });
+  });
+
+  if (!upcomingEvents.length) {
+    const item = document.createElement("li");
+    item.textContent = "No more events scheduled.";
+    todayEventsEl.appendChild(item);
+    return;
+  }
+
+  upcomingEvents.slice(0, 3).forEach(({ day, event }) => {
+    const item = document.createElement("li");
+    item.textContent = `${event.time} \u00B7 ${event.title} (${day.location})`;
+    todayEventsEl.appendChild(item);
+  });
+}
+
+function setupTodayActions() {
+  const hud = document.getElementById("trip-hud");
+  if (hud) {
+    if (todayMapLink) todayMapLink.href = hud.dataset.baseMap ?? "#";
+    if (todaySupermarketLink) {
+      todaySupermarketLink.href = hud.dataset.supermarketMap ?? "#";
+    }
+  }
+  if (todayJumpButton) {
+    todayJumpButton.addEventListener("click", () => {
+      const today = days.find((day) => getDateString(day.timeZone) === day.date);
+      if (today) {
+        scrollToTarget(`day-${today.date}`);
+      }
+    });
+  }
+}
+
+function showActionToast(message, { timeout = 3000 } = {}) {
+  if (!actionToast) return;
+  actionToast.textContent = message;
+  actionToast.hidden = false;
+  if (timeout) {
+    setTimeout(() => {
+      actionToast.hidden = true;
+    }, timeout);
+  }
+}
+
+function buildChecklistExport(saved) {
+  return checklist.map((section, sectionIndex) => ({
+    category: section.category,
+    items: section.items.map((item, itemIndex) => ({
+      label: item.label,
+      checked: saved?.[sectionIndex]?.[itemIndex] ?? item.checked,
+    })),
+  }));
+}
+
+function setupChecklistExportImport() {
+  if (exportChecklistButton) {
+    exportChecklistButton.addEventListener("click", () => {
+      const saved = JSON.parse(safeReadStorage(storageKey) ?? "{}");
+      const payload = {
+        exportedAt: new Date().toISOString(),
+        checklist: buildChecklistExport(saved),
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = "aurora-checklist.json";
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+      showActionToast("Checklist exported.");
+    });
+  }
+
+  if (importChecklistButton && importChecklistInput) {
+    importChecklistButton.addEventListener("click", () => importChecklistInput.click());
+    importChecklistInput.addEventListener("change", async () => {
+      const file = importChecklistInput.files?.[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const parsed = JSON.parse(text);
+        const sections = parsed?.checklist;
+        if (!Array.isArray(sections)) {
+          throw new Error("Invalid checklist file");
+        }
+        const saved = {};
+        sections.forEach((section, sectionIndex) => {
+          if (!Array.isArray(section.items)) return;
+          saved[sectionIndex] = {};
+          section.items.forEach((item, itemIndex) => {
+            if (typeof item?.checked === "boolean") {
+              saved[sectionIndex][itemIndex] = item.checked;
+            }
+          });
+        });
+        safeWriteStorage(storageKey, JSON.stringify(saved));
+        renderChecklist();
+        showActionToast("Checklist imported.");
+      } catch (error) {
+        showActionToast("Unable to import checklist.");
+      } finally {
+        importChecklistInput.value = "";
+      }
+    });
+  }
+}
+
+function setupShareAndPrint() {
+  if (shareButton) {
+    shareButton.addEventListener("click", async () => {
+      const shareData = {
+        title: document.title,
+        text: "Aurora trip reference pack",
+        url: window.location.href,
+      };
+      if (navigator.share) {
+        try {
+          await navigator.share(shareData);
+        } catch (error) {
+          showActionToast("Share cancelled.");
+        }
+      } else if (navigator.clipboard) {
+        try {
+          await navigator.clipboard.writeText(shareData.url);
+          showActionToast("Trip link copied.");
+        } catch (error) {
+          showActionToast("Unable to copy trip link.");
+        }
+      } else {
+        showActionToast("Sharing not supported.");
+      }
+    });
+  }
+
+  if (printButton) {
+    printButton.addEventListener("click", () => window.print());
+  }
+}
+
+function setupBackToTop() {
+  if (!backToTopButton) return;
+  backToTopButton.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+  const toggleButton = () => {
+    const show = window.scrollY > window.innerHeight;
+    backToTopButton.hidden = !show;
+  };
+  toggleButton();
+  window.addEventListener("scroll", toggleButton);
 }
 
 function updateStickyOffset() {
@@ -620,16 +621,22 @@ function setupDayNav() {
 }
 
 function init() {
+  safeWriteStorage(LAST_UPDATED_KEY, String(Date.now()));
   renderTimeline();
   renderDays();
+  renderTodayCard();
   renderBookings();
   renderMaps();
   renderChecklist();
+  setupChecklistExportImport();
+  setupTodayActions();
   setupSearch();
   setupZoneToggle();
   updateNowNext();
+  setupShareAndPrint();
   setupDayNav();
   updateStickyOffset();
+  setupBackToTop();
   handleHashChange();
   window.addEventListener("hashchange", handleHashChange);
   window.addEventListener("resize", updateStickyOffset);

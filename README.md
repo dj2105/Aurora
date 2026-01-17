@@ -1,6 +1,20 @@
 # Aurora
 Lapland
 
+## Updating trip data
+
+Edit the trip content in `assets/data/trip-data.js` (days, bookings, checklist, maps).【F:assets/data/trip-data.js†L1-L164】
+
+## PWA cache versioning
+
+When you need to force a refresh, bump `CACHE_VERSION` in `sw.js`. This will invalidate the old caches on next load.【F:sw.js†L1-L29】
+
+## Testing on iOS Safari
+
+1. Open `https://dj2105.github.io/Aurora/` in Safari.
+2. Tap Share → Add to Home Screen.
+3. Launch from the Home Screen and confirm offline access by toggling Airplane Mode.
+
 ## Live Weather + Aurora dashboard
 
 Add a dashboard to any day section by including the placeholder:

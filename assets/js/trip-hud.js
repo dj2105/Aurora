@@ -1,4 +1,4 @@
-﻿import {
+import {
   TIME_ZONE,
   buildWeatherUrl,
   cacheKey,
@@ -7,6 +7,7 @@
   formatDateInZone,
   formatMetric,
   formatTimeWithZone,
+  isOffline,
   parseKpForecastMax,
   parseKpObserved,
   scoreLabel,
@@ -68,12 +69,12 @@
       await navigator.clipboard.writeText(address);
       elements.copy.textContent = "Copied";
       setTimeout(() => {
-        elements.copy.textContent = "Accommodation";
+        elements.copy.textContent = "Stay";
       }, 2000);
     } catch (error) {
       elements.copy.textContent = "Copy failed";
       setTimeout(() => {
-        elements.copy.textContent = "Accommodation";
+        elements.copy.textContent = "Stay";
       }, 2000);
     }
   }
@@ -139,7 +140,7 @@
       const tonightCloud = computeTonightCloudAverage(hourly, TIME_ZONE);
 
       if (elements.weatherNow) {
-        elements.weatherNow.textContent = `Temp ${formatMetric(temp, "°")} · Cloud ${formatMetric(cloudNow, "%")}`;
+        elements.weatherNow.textContent = `Temp ${formatMetric(temp, "\u00B0")} \u00B7 Cloud ${formatMetric(cloudNow, "%")}`;
       }
       if (elements.cloudTonight) {
         elements.cloudTonight.textContent = `Tonight ${formatMetric(tonightCloud, "%")} cloud`;
@@ -148,26 +149,32 @@
       const kpObserved = parseKpObserved(kpObservedResult.data);
       const kpMax = parseKpForecastMax(kpForecastResult.data, 12);
       const kpNow = kpObserved?.kp ?? null;
-      const kpNowLabel = kpNow === null ? "—" : kpNow.toFixed(1);
+      const kpNowLabel = kpNow === null ? "\u2014" : kpNow.toFixed(1);
       const score = Math.round(
         100 * (1 - (cloudNow ?? 100) / 100) * Math.min(1, Math.max(0, (kpNow ?? 0) / 6))
       );
 
       if (elements.auroraNow) {
-        elements.auroraNow.textContent = `Kp ${kpNowLabel} · 12h max ${kpMax === null ? "—" : kpMax.toFixed(1)}`;
+        elements.auroraNow.textContent = `Kp ${kpNowLabel} \u00B7 12h max ${kpMax === null ? "\u2014" : kpMax.toFixed(1)}`;
       }
       if (elements.auroraScore) {
         const label = scoreLabel(score);
-        elements.auroraScore.textContent = `Aurora ${score} · ${label}`;
+        elements.auroraScore.textContent = `Aurora ${score} \u00B7 ${label}`;
         elements.auroraScore.dataset.score = scoreTier(score);
       }
 
       const stale = weatherResult.stale || kpObservedResult.stale || kpForecastResult.stale;
       if (stale) {
-        setStatus("Using cached data — check connection", true);
+        const message = isOffline()
+          ? "Offline \u2014 showing cached data"
+          : "Using cached data \u2014 check connection";
+        setStatus(message, true);
       }
     } catch (error) {
-      setStatus("Unable to load live data.", true);
+      const message = isOffline()
+        ? "Offline \u2014 unable to refresh live data"
+        : "Unable to load live data.";
+      setStatus(message, true);
     }
   }
 
