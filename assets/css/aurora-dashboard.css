@@ -68,6 +68,10 @@
   justify-items: center;
 }
 
+.dashboard-hour.is-missing .dashboard-bar::after {
+  opacity: 0.2;
+}
+
 .dashboard-bar {
   width: 100%;
   max-width: 2.5rem;
@@ -90,6 +94,12 @@
 
 .dashboard-hour-label {
   font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.dashboard-note {
+  margin: 0.4rem 0 0;
+  font-size: 0.75rem;
   color: var(--text-muted);
 }
 

@@ -10,7 +10,10 @@ Edit the trip content in `assets/data/trip-data.js` (days, bookings, checklist, 
 Clear these localStorage keys to reset user data:
 - `aurora-checklist` (packing checklist state)
 - `aurora-outing-gear-v1` (outing gear matrix)
+- `aurora-pills-v1` (daily pills tracker per day)
 - `aurora-user-items-v1` (user-added events + notes)
+
+In the UI you can also use the "Reset today" / "Reset all" buttons in the pills panel and the reset buttons in Outing Gear to clear local data quickly.
 
 ## PWA cache versioning
 

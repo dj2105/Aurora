@@ -2,12 +2,15 @@ import { bookings, checklist, days, maps } from "./assets/data/trip-data.js";
 
 const storageKey = "aurora-checklist";
 const outingGearKey = "aurora-outing-gear-v1";
+const pillsKey = "aurora-pills-v1";
 const userItemsKey = "aurora-user-items-v1";
 const LAST_UPDATED_KEY = "aurora-last-updated";
 let displayZone = "local";
 let dayObserver;
 let outingGearState = null;
 let userItems = [];
+let pillsState = {};
+let lastPillReminderDate = null;
 
 const timelineEl = document.getElementById("timeline");
 const daysEl = document.getElementById("days-list");
@@ -46,6 +49,9 @@ const addItemTitle = document.getElementById("user-item-title");
 const addItemDetail = document.getElementById("user-item-detail");
 const addItemType = document.getElementById("user-item-type");
 const notesInboxList = document.getElementById("notes-inbox-list");
+const keyInfoContent = document.getElementById("key-info-content");
+const pillsTodayDate = document.getElementById("pills-today-date");
+const pillsTodayStatus = document.getElementById("pills-today-status");
 
 const defaultOutingGear = [
   "Gloves",
@@ -66,6 +72,31 @@ const defaultOutingGear = [
   "Tobacco",
   "Keys",
 ];
+
+const keyInfo = {
+  stay: {
+    title: "Riverside Restplace",
+    checkIn: "Check-in window: Tue 20 Jan · 15:00\u201322:00",
+    checkOut: "Check-out window: Sat 24 Jan · by 11:00",
+    lockbox: "Keys in lockbox (see host message).",
+    phone: "+358 40 670 2904",
+    payment: "Cash-only payment on arrival.",
+  },
+  trains: [
+    {
+      title: "Tue 20 Jan",
+      route: "RVN \u2192 Kemi \u2192 Tornio-It\u00e4inen",
+      times: "05:15 RVN \u00b7 07:38 Kemi \u00b7 08:21 Tornio-It\u00e4inen",
+      seat: "Coach 2 \u00b7 Seats 23A / 23B",
+    },
+    {
+      title: "Sat 24 Jan",
+      route: "Kemi \u2192 Rovaniemi",
+      times: "10:11 Kemi \u00b7 12:52 Rovaniemi",
+      seat: "Coach 3 \u00b7 Seats 12A / 12B",
+    },
+  ],
+};
 
 function safeReadStorage(key) {
   try {
@@ -125,6 +156,36 @@ function loadOutingGear() {
 function saveOutingGear() {
   if (!outingGearState) return;
   safeWriteStorage(outingGearKey, JSON.stringify(outingGearState));
+}
+
+function loadPillsState() {
+  const stored = safeReadStorage(pillsKey);
+  if (!stored) return {};
+  try {
+    const parsed = JSON.parse(stored);
+    if (!parsed || typeof parsed !== "object") return {};
+    const cleaned = {};
+    Object.entries(parsed).forEach(([date, entry]) => {
+      cleaned[date] = {
+        daniel: Boolean(entry?.daniel),
+        jaime: Boolean(entry?.jaime),
+      };
+    });
+    return cleaned;
+  } catch (error) {
+    return {};
+  }
+}
+
+function savePillsState() {
+  safeWriteStorage(pillsKey, JSON.stringify(pillsState));
+}
+
+function getPillsEntry(date) {
+  if (!pillsState[date]) {
+    pillsState[date] = { daniel: false, jaime: false };
+  }
+  return pillsState[date];
 }
 
 function loadUserItems() {
@@ -278,8 +339,53 @@ function updateOutingGearCounts() {
   const total = outingGearState.items.length;
   const danielDone = outingGearState.items.filter((item) => item.checks.daniel).length;
   const jaimeDone = outingGearState.items.filter((item) => item.checks.jaime).length;
-  outingGearCountDaniel.textContent = `Daniel: ${danielDone}/${total}`;
-  outingGearCountJaime.textContent = `Jaime: ${jaimeDone}/${total}`;
+  outingGearCountDaniel.textContent = `Daniel ${danielDone}/${total}`;
+  outingGearCountJaime.textContent = `Jaime ${jaimeDone}/${total}`;
+}
+
+function renderKeyInfo() {
+  if (!keyInfoContent) return;
+  keyInfoContent.innerHTML = `
+    <div class="key-info__section">
+      <h4>${keyInfo.stay.title}</h4>
+      <ul class="key-info__list">
+        <li><strong>${keyInfo.stay.checkIn}</strong></li>
+        <li><strong>${keyInfo.stay.checkOut}</strong></li>
+        <li>${keyInfo.stay.lockbox}</li>
+        <li><a href="tel:${keyInfo.stay.phone.replace(/\s+/g, "")}">${keyInfo.stay.phone}</a></li>
+        <li>${keyInfo.stay.payment}</li>
+      </ul>
+    </div>
+    <div class="key-info__section">
+      <h4>Train quick refs</h4>
+      <ul class="key-info__list">
+        ${keyInfo.trains
+          .map(
+            (train) => `
+            <li>
+              <strong>${train.title}</strong><br />
+              ${train.route}<br />
+              ${train.times}<br />
+              ${train.seat}
+            </li>
+          `
+          )
+          .join("")}
+      </ul>
+    </div>
+  `;
+}
+
+function renderPillsIndicator() {
+  if (!pillsTodayStatus || !pillsTodayDate) return;
+  const today = getDateString("Europe/Helsinki");
+  const todayDay = days.find((day) => day.date === today);
+  const entry = getPillsEntry(today);
+  pillsTodayDate.textContent = todayDay ? `${todayDay.weekday} \u00b7 ${todayDay.date}` : today;
+  pillsTodayStatus.innerHTML = `
+    <span class="pill-indicator ${entry.daniel ? "is-done" : ""}">Daniel ${entry.daniel ? "\u2713" : "\u25a2"}</span>
+    <span class="pill-indicator ${entry.jaime ? "is-done" : ""}">Jaime ${entry.jaime ? "\u2713" : "\u25a2"}</span>
+  `;
 }
 
 function renderNotesInbox() {
@@ -322,6 +428,19 @@ function renderDays() {
     header.innerHTML = `
       <h3>${day.weekday} \u00B7 ${day.date} \u00B7 ${day.location}</h3>
       ${day.notes ? `<p class="day-meta">${day.notes}</p>` : ""}
+    `;
+
+    const pillsRow = document.createElement("div");
+    pillsRow.className = "day-pills";
+    const pillsEntry = getPillsEntry(day.date);
+    pillsRow.innerHTML = `
+      <span class="day-pills__label">Daily pill</span>
+      <button class="pill-toggle ${pillsEntry.daniel ? "is-active" : ""}" type="button" data-pill-toggle="daniel" data-pill-date="${day.date}" aria-pressed="${pillsEntry.daniel}">
+        Daniel
+      </button>
+      <button class="pill-toggle ${pillsEntry.jaime ? "is-active" : ""}" type="button" data-pill-toggle="jaime" data-pill-date="${day.date}" aria-pressed="${pillsEntry.jaime}">
+        Jaime
+      </button>
     `;
 
     const jumpNav = document.createElement("nav");
@@ -376,6 +495,7 @@ function renderDays() {
         eventEl.innerHTML = `
           ${isScheduled ? `<div class="event-time">${timeHtml}</div>` : ""}
           <div>
+            ${isScheduled ? "" : `<p class="event-when">Any time</p>`}
             <p class="event-title">${event.title}</p>
             ${detailText ? `<p class="event-detail">${detailText}</p>` : ""}
             <div class="event-actions">${links}${actions}${removeButton}</div>
@@ -395,6 +515,7 @@ function renderDays() {
     `;
 
     section.appendChild(header);
+    section.appendChild(pillsRow);
     section.appendChild(jumpNav);
     section.appendChild(scheduleSection);
     section.appendChild(auroraSection);
@@ -475,6 +596,8 @@ function updateNowNext() {
   }
 
   renderTodayCard();
+  renderPillsIndicator();
+  maybeSendPillReminder();
 }
 
 function renderBookings() {
@@ -647,6 +770,52 @@ function setupOutingGear() {
       renderOutingGear();
     });
   }
+}
+
+function setupPills() {
+  document.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    const pillToggle = target.dataset.pillToggle;
+    const pillDate = target.dataset.pillDate;
+    const pillReset = target.dataset.pillReset;
+
+    if (pillToggle && pillDate) {
+      const entry = getPillsEntry(pillDate);
+      entry[pillToggle] = !entry[pillToggle];
+      pillsState[pillDate] = entry;
+      savePillsState();
+      target.classList.toggle("is-active", entry[pillToggle]);
+      target.setAttribute("aria-pressed", String(entry[pillToggle]));
+      if (pillDate === getDateString("Europe/Helsinki")) {
+        renderPillsIndicator();
+      }
+      return;
+    }
+
+    if (pillReset) {
+      const today = getDateString("Europe/Helsinki");
+      if (pillReset === "today") {
+        pillsState[today] = { daniel: false, jaime: false };
+      } else if (pillReset === "all") {
+        pillsState = {};
+      }
+      savePillsState();
+      renderDays();
+      renderPillsIndicator();
+    }
+  });
+}
+
+function maybeSendPillReminder() {
+  const today = getDateString("Europe/Helsinki");
+  const { hour } = getTimeParts("Europe/Helsinki");
+  if (hour < 13) return;
+  const entry = getPillsEntry(today);
+  if (entry.daniel && entry.jaime) return;
+  if (lastPillReminderDate === today) return;
+  lastPillReminderDate = today;
+  showActionToast("Pills reminder: tick Daniel + Jaime for today.");
 }
 
 function setupAddItemForm() {
@@ -985,15 +1154,19 @@ function setupDayNav() {
 function init() {
   safeWriteStorage(LAST_UPDATED_KEY, String(Date.now()));
   userItems = loadUserItems();
+  pillsState = loadPillsState();
   renderTimeline();
   renderDays();
   renderTodayCard();
   renderBookings();
   renderMaps();
   renderChecklist();
+  renderKeyInfo();
+  renderPillsIndicator();
   renderNotesInbox();
   setupChecklistExportImport();
   setupOutingGear();
+  setupPills();
   setupAddItemForm();
   setupUserItemRemoval();
   setupTodayActions();

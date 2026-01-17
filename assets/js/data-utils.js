@@ -203,13 +203,15 @@ function computeNightCloudAverageForDate(hourly, targetDateStr, timeZone = TIME_
 }
 
 function getNightHoursForDate(hourly, targetDateStr, timeZone = TIME_ZONE) {
-  if (!hourly?.time || !targetDateStr) return [];
+  if (!targetDateStr) return [];
   const nextDay = getNextDateString(targetDateStr, timeZone);
   if (!nextDay) return [];
   const timeIndexMap = new Map();
-  hourly.time.forEach((time, index) => {
-    timeIndexMap.set(time, index);
-  });
+  if (Array.isArray(hourly?.time)) {
+    hourly.time.forEach((time, index) => {
+      timeIndexMap.set(time, index);
+    });
+  }
   const hours = [20, 21, 22, 23, 0, 1, 2];
   return hours.map((hour) => {
     const date = hour >= 20 ? targetDateStr : nextDay;
