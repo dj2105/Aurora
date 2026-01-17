@@ -330,6 +330,7 @@ function renderDays() {
         ${day.sun_data ? `<p class="day-meta">${day.sun_data}</p>` : ""}
         ${day.notes ? `<p class="day-meta">${day.notes}</p>` : ""}
       </div>
+      <div class="live-dashboard" data-day="${day.date}"></div>
       <div class="event-list"></div>
     `;
 

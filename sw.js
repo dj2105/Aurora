@@ -1,5 +1,13 @@
 const CACHE_NAME = "aurora-cache-v1";
-const ASSETS = ["/", "/index.html", "/styles.css", "/app.js", "/manifest.json"]; 
+const ASSETS = [
+  "/",
+  "/index.html",
+  "/styles.css",
+  "/app.js",
+  "/manifest.json",
+  "/assets/css/aurora-dashboard.css",
+  "/assets/js/aurora-dashboard.js",
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
