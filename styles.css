@@ -496,6 +496,21 @@ html {
   min-width: 200px;
 }
 
+.outing-gear__counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.outing-gear__counts span {
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
 .outing-gear__table {
   display: grid;
   gap: var(--space-xs);
