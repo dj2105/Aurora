@@ -38,3 +38,59 @@ To change the default accommodation coordinates, edit the `DEFAULT_LOCATION` obj
 Cache TTLs:
 - Weather: 10 minutes
 - Kp observed/forecast: 5 minutes
+
+## Optional Firestore sync (anonymous auth + trip code)
+
+This app is static and works offline by default. Optional cloud sync can be enabled using Firebase (no backend server required).
+
+### Setup steps
+1. Create a Firebase project and enable **Anonymous Authentication**.
+2. Create a Firestore database in production mode.
+3. Add your Firebase config in `firebase-config.js` (or provide the values as `<meta>` tags in `index.html`).
+4. Deploy the Firestore rules below.
+5. Reload the app, toggle “Sync across devices”, and create a new trip code.
+
+### Firestore rules (firestore.rules)
+```rules
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isMember(tripCode) {
+      return exists(/databases/$(database)/documents/trips/$(tripCode)/members/$(request.auth.uid));
+    }
+
+    match /trips/{tripCode} {
+      allow create: if isSignedIn();
+      allow read, update: if isSignedIn() && isMember(tripCode);
+
+      match /state/{docId} {
+        allow read, write: if isSignedIn() && isMember(tripCode);
+      }
+
+      match /members/{memberId} {
+        allow read: if isSignedIn() && request.auth.uid == memberId;
+        allow create: if isSignedIn()
+          && request.auth.uid == memberId
+          && get(/databases/$(database)/documents/trips/$(tripCode)).data.joinToken
+             == request.resource.data.joinToken;
+      }
+    }
+  }
+}
+```
+
+### Firebase config example
+```js
+window.AURORA_FIREBASE_CONFIG = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID",
+};
+```

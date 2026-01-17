@@ -106,6 +106,45 @@
         </div>
       </section>
 
+      <section class="section" id="sync" aria-label="Sync across devices">
+        <header class="section-header">
+          <h2>Sync across devices</h2>
+          <p>Optional Firestore sync for gear, pills, checklist, and notes. Local storage stays the default.</p>
+        </header>
+        <div class="sync-card">
+          <div class="sync-row">
+            <label class="sync-toggle" for="sync-toggle">
+              <input id="sync-toggle" type="checkbox" />
+              <span>Sync across devices</span>
+            </label>
+            <button class="sync-status" id="sync-status" type="button">Offline</button>
+          </div>
+          <div class="sync-fields">
+            <label class="sync-field">
+              <span>Trip code</span>
+              <input id="sync-trip-code" type="text" maxlength="10" placeholder="ABC123" />
+            </label>
+            <label class="sync-field">
+              <span>Join token</span>
+              <input id="sync-join-token" type="text" maxlength="10" placeholder="Token" />
+            </label>
+          </div>
+          <div class="sync-actions">
+            <button class="pill" id="sync-create" type="button">Create new trip code</button>
+            <button class="pill" id="sync-join" type="button">Join trip</button>
+            <button class="pill" id="sync-copy" type="button">Copy trip code</button>
+            <button class="pill" id="sync-disconnect" type="button">Disconnect</button>
+          </div>
+          <div class="sync-meta">
+            <p class="meta">Join token for this trip</p>
+            <div class="sync-token">
+              <span id="sync-join-token-value">—</span>
+              <button class="pill" id="sync-join-token-reveal" type="button">Show join token</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section class="section" id="key-info" aria-label="Key info">
         <header class="section-header">
           <h2>Key info</h2>
@@ -317,7 +356,9 @@
       Back to top
     </button>
 
+    <script src="firebase-config.js"></script>
     <script type="module" src="app.js"></script>
+    <script type="module" src="assets/js/sync.js"></script>
     <script type="module" src="assets/js/aurora-dashboard.js"></script>
     <script type="module" src="assets/js/trip-hud.js"></script>
     <script type="module" src="assets/js/pwa.js"></script>

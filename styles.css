@@ -479,6 +479,83 @@ html {
   justify-self: start;
 }
 
+.sync-card {
+  display: grid;
+  gap: var(--space-md);
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  padding: var(--space-md);
+}
+
+.sync-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.sync-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.sync-status {
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: var(--surface-strong);
+  color: var(--text);
+  padding: 0.35rem 0.9rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.sync-fields {
+  display: grid;
+  gap: var(--space-sm);
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.sync-field {
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+}
+
+.sync-field input {
+  padding: 0.6rem 0.8rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+.sync-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.sync-meta {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.sync-token {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  color: var(--text);
+}
+
 .key-info-grid {
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
