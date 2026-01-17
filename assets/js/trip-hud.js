@@ -7,7 +7,6 @@ import {
   formatTimeWithZone,
   formatDateInZone,
   isOffline,
-  parseKpObserved,
 } from "./data-utils.js";
 
 (() => {
@@ -23,12 +22,16 @@ import {
   const elements = {
     timeFi: hud.querySelector("[data-role='time-fi']"),
     timeIe: hud.querySelector("[data-role='time-ie']"),
-    tonightTemp: hud.querySelector("[data-role='tonight-temp']"),
-    tonightTempMeta: hud.querySelector("[data-role='tonight-temp-meta']"),
-    tonightCloud: hud.querySelector("[data-role='tonight-cloud']"),
-    tonightCloudMeta: hud.querySelector("[data-role='tonight-cloud-meta']"),
-    tonightKp: hud.querySelector("[data-role='tonight-kp']"),
-    tonightKpMeta: hud.querySelector("[data-role='tonight-kp-meta']"),
+    tonightTempLow: hud.querySelector("[data-role='tonight-temp-low']"),
+    tonightTempLowTime: hud.querySelector("[data-role='tonight-temp-low-time']"),
+    tonightTempHigh: hud.querySelector("[data-role='tonight-temp-high']"),
+    tonightTempHighTime: hud.querySelector("[data-role='tonight-temp-high-time']"),
+    tonightCloudAvg: hud.querySelector("[data-role='tonight-cloud-avg']"),
+    tonightCloudAvgLabel: hud.querySelector("[data-role='tonight-cloud-avg-label']"),
+    tonightCloudBest: hud.querySelector("[data-role='tonight-cloud-best']"),
+    tonightCloudBestTime: hud.querySelector("[data-role='tonight-cloud-best-time']"),
+    tonightKpMax: hud.querySelector("[data-role='tonight-kp-max']"),
+    tonightKpMaxTime: hud.querySelector("[data-role='tonight-kp-max-time']"),
     status: hud.querySelector("[data-role='hud-status']"),
   };
 
@@ -175,38 +178,43 @@ import {
       const minTempHour = tonightHours.find((hour) => hour.temp === minTemp)?.hour ?? null;
       const maxTempHour = tonightHours.find((hour) => hour.temp === maxTemp)?.hour ?? null;
 
-      if (elements.tonightTemp) {
-        if (minTemp !== null && maxTemp !== null) {
-          elements.tonightTemp.textContent = `${formatMetric(minTemp, "\u00B0")} → ${formatMetric(maxTemp, "\u00B0")}`;
-        } else {
-          elements.tonightTemp.textContent = "\u2014";
-        }
+      if (elements.tonightTempLow) {
+        elements.tonightTempLow.textContent =
+          minTemp !== null ? formatMetric(minTemp, "\u00B0") : "\u2014";
       }
-      if (elements.tonightTempMeta) {
-        const parts = [];
-        if (minTempHour !== null) parts.push(`low ~${formatHourLabel(minTempHour)}`);
-        if (maxTempHour !== null) parts.push(`high ~${formatHourLabel(maxTempHour)}`);
-        elements.tonightTempMeta.textContent = parts.join(" \u00B7 ");
+      if (elements.tonightTempLowTime) {
+        elements.tonightTempLowTime.textContent = minTempHour !== null ? formatHourLabel(minTempHour) : "";
       }
-
-      if (elements.tonightCloud) {
-        elements.tonightCloud.textContent = `Avg ${formatMetric(cloudAvg, "%")}`;
+      if (elements.tonightTempHigh) {
+        elements.tonightTempHigh.textContent =
+          maxTemp !== null ? formatMetric(maxTemp, "\u00B0") : "\u2014";
       }
-      if (elements.tonightCloudMeta) {
-        elements.tonightCloudMeta.textContent = bestCloudLabel ? `best ~${bestCloudLabel}` : "";
+      if (elements.tonightTempHighTime) {
+        elements.tonightTempHighTime.textContent = maxTempHour !== null ? formatHourLabel(maxTempHour) : "";
       }
 
-      const kpObserved = parseKpObserved(kpObservedResult.data);
+      if (elements.tonightCloudAvg) {
+        elements.tonightCloudAvg.textContent = cloudAvg !== null ? formatMetric(cloudAvg, "%") : "\u2014";
+      }
+      if (elements.tonightCloudAvgLabel) {
+        elements.tonightCloudAvgLabel.textContent = "avg";
+      }
+      if (elements.tonightCloudBest) {
+        elements.tonightCloudBest.textContent = bestCloudValue !== null ? formatMetric(bestCloudValue, "%") : "\u2014";
+      }
+      if (elements.tonightCloudBestTime) {
+        elements.tonightCloudBestTime.textContent = bestCloudLabel || "";
+      }
+
       const kpForecast = computeKpForecastMaxForTonight(kpForecastResult.data);
-      const kpNow = kpObserved?.kp ?? null;
-      const kpNowLabel = kpNow === null ? "\u2014" : kpNow.toFixed(1);
       const kpMaxLabel = kpForecast.max === null ? "\u2014" : kpForecast.max.toFixed(1);
 
-      if (elements.tonightKp) {
-        elements.tonightKp.textContent = `Now ${kpNowLabel} \u00B7 max ${kpMaxLabel}`;
+      if (elements.tonightKpMax) {
+        elements.tonightKpMax.textContent = kpMaxLabel;
       }
-      if (elements.tonightKpMeta) {
-        elements.tonightKpMeta.textContent = kpForecast.hour !== null ? `max ~${formatHourLabel(kpForecast.hour)}` : "";
+      if (elements.tonightKpMaxTime) {
+        elements.tonightKpMaxTime.textContent =
+          kpForecast.hour !== null ? formatHourLabel(kpForecast.hour) : "";
       }
 
       const stale = weatherResult.stale || kpObservedResult.stale || kpForecastResult.stale;

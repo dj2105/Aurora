@@ -462,10 +462,8 @@ function renderTimeline() {
     link.type = "button";
     link.className = "day-chip";
     link.dataset.day = day.date;
-    link.textContent = day.weekday ?? formatTripDate(day.date, day.timeZone);
-    if (day.date === getDateString(day.timeZone)) {
-      link.classList.add("is-today");
-    }
+    const formatted = formatTripDate(day.date, day.timeZone).replace(",", "");
+    link.textContent = formatted;
     timelineEl.appendChild(link);
   });
 }
@@ -576,23 +574,8 @@ function renderDayCarousel() {
     header.innerHTML = `
       <div class="day-panel__heading">
         <h3 class="day-panel__title">${day.weekday}</h3>
-        <p class="day-panel__date">${formatDayHeader(day)}</p>
       </div>
     `;
-
-    const pillsRow = document.createElement("div");
-    pillsRow.className = "day-panel__pills";
-    const pillsEntry = getPillsEntry(day.date);
-    pillsRow.innerHTML = `
-      <span class="day-panel__pills-label">Pill</span>
-      <button class="pill-toggle ${pillsEntry.daniel ? "is-active" : ""}" type="button" data-pill-toggle="daniel" data-pill-date="${day.date}" aria-pressed="${pillsEntry.daniel}">
-        Daniel
-      </button>
-      <button class="pill-toggle ${pillsEntry.jaime ? "is-active" : ""}" type="button" data-pill-toggle="jaime" data-pill-date="${day.date}" aria-pressed="${pillsEntry.jaime}">
-        Jaime
-      </button>
-    `;
-    header.appendChild(pillsRow);
 
     const eventList = document.createElement("div");
     eventList.className = "event-list";
@@ -615,14 +598,9 @@ function renderDayCarousel() {
         const metaRow = document.createElement("div");
         metaRow.className = "event-meta-row";
 
-        const titleEl = document.createElement(event.detail ? "button" : "p");
-        titleEl.className = event.detail ? "event-title-button" : "event-title";
+        const titleEl = document.createElement("p");
+        titleEl.className = "event-title";
         titleEl.textContent = event.title;
-        if (event.detail) {
-          titleEl.dataset.eventTitle = event.title;
-          titleEl.dataset.eventDetail = event.detail;
-          titleEl.type = "button";
-        }
 
         metaRow.appendChild(titleEl);
 
@@ -647,7 +625,6 @@ function renderDayCarousel() {
         }
 
         content.appendChild(metaRow);
-
         if (event.type === "transport") {
           const transport = document.createElement("div");
           transport.className = "event-transport";
@@ -725,6 +702,12 @@ function renderDayCarousel() {
           }
 
           content.appendChild(transport);
+        }
+        if (event.detail) {
+          const detail = document.createElement("p");
+          detail.className = "event-note";
+          detail.textContent = event.detail;
+          content.appendChild(detail);
         }
         row.appendChild(timeEl);
         row.appendChild(content);
@@ -1463,34 +1446,25 @@ function setupDayNav() {
 
   const setActive = (date) => {
     dayLinks.forEach((link) => link.classList.remove("is-active"));
+    dayPanels.forEach((panel) => panel.classList.remove("is-active"));
     const active = linkMap.get(date);
     if (active) active.classList.add("is-active");
+    const panel = dayPanels.find((item) => item.dataset.day === date);
+    if (panel) panel.classList.add("is-active");
   };
 
   dayLinks.forEach((link) => {
     link.onclick = () => {
       const day = link.dataset.day;
-      const panel = dayPanels.find((item) => item.dataset.day === day);
       setActiveTab("home", { scroll: false });
-      panel?.scrollIntoView({ behavior: "smooth", inline: "start", block: "nearest" });
+      if (day) setActive(day);
     };
   });
 
-  dayObserver = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          const date = entry.target.dataset.day;
-          if (date) setActive(date);
-        }
-      });
-    },
-    { root: carousel, threshold: 0.6 }
-  );
-
-  dayPanels.forEach((panel) => dayObserver.observe(panel));
-  if (dayPanels[0]) {
-    setActive(dayPanels[0].dataset.day);
+  const today = getDateString("Europe/Helsinki");
+  const initial = dayPanels.find((panel) => panel.dataset.day === today) ?? dayPanels[0];
+  if (initial) {
+    setActive(initial.dataset.day);
   }
 }
 
