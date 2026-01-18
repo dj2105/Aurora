@@ -511,7 +511,7 @@
             details: ["Dublin Coach 726 (Green Bus). 24h Service.", "Departs: Newbridge Main St. Arrives: Zone 16.", "Allow 10-15 min to get from House (W12PK16) to stop."],
             links: [
                 { label: "726 Timetable", href: "https://www.dublincoach.ie/all-timetables/n7-service" },
-                { label: "Stop Map", href: "https://www.google.com/maps?api=1&query=Dublin+Coach+726+stop+Newbridge+Main+St+Riverbank" }
+                { label: "Stop Map", href: "https://www.google.com/maps/search/?api=1&query=Dublin+Coach+Stop+Newbridge" }
             ]
           },
           {
@@ -529,11 +529,20 @@
             type: "layover",
             title: "Layover: Birmingham (BHX)",
             time: { local: "Layover", tz: "" },
-            details: ["~10h Layover. Take Air-Rail Link to Birmingham Intl, then train to City Centre (New Street)."],
+            details: [
+              "~10h layover.",
+              "Fast escape plan: BHX → (free Air-Rail Link) Birmingham International station → train to Birmingham New Street (city centre).",
+              "If you want low-effort sightseeing: canals/Brindleyplace + The Mailbox (easy stroll, plenty of food).",
+              "Bag strategy: if you want hands-free, use BHX Left Luggage (check opening times).",
+              "Golden tip: leave a generous buffer to get back to BHX—New Street can be chaotic during disruption."
+            ],
             links: [
-                { label: "B'ham Map", href: "https://www.google.com/maps?api=1&query=Birmingham+Airport+(BHX)" },
-                { label: "City Travel Info", href: "https://www.birminghamairport.co.uk/transport-links/by-train/" },
-                { label: "Train Tickets", href: "https://www.thetrainline.com/" }
+              { label: "BHX transport overview", href: "https://www.birminghamairport.co.uk/customer-support/directions-and-transport-faqs/" },
+              { label: "BHX ↔ rail station (Air-Rail)", href: "https://www.birminghamairport.co.uk/customer-support/directions-and-transport-faqs/" },
+              { label: "Train times: Intl → New Street", href: "https://www.thetrainline.com/train-times/birmingham-international-to-birmingham-new-street" },
+              { label: "BHX left luggage", href: "https://www.birminghamairport.co.uk/at-the-airport/shopping/luggage-point-passenger-services/" },
+              { label: "Brindleyplace / canals map", href: "https://www.google.com/maps/search/?api=1&query=Brindleyplace+Birmingham" },
+              { label: "Mailbox map", href: "https://www.google.com/maps/search/?api=1&query=The+Mailbox+Birmingham" }
             ]
           },
           {
@@ -548,10 +557,19 @@
             type: "overnight",
             title: "Arrival: Rovaniemi",
             time: { local: "23:00", tz: "Europe/Rovaniemi" },
-            details: ["Late night arrival. Most restaurants closed. 24h Sale supermarket or Shell gas station for supplies."],
+            details: [
+              "Late arrival: plan on limited restaurant choice.",
+              "Priority: quick supermarket run for breakfast + snacks, then sleep.",
+              "Good ‘first night’ buys: karjalanpiirakka (Karelian pies), rye bread, yoghurt, bananas, hot chocolate, coffee, porridge oats.",
+              "Golden tip: keep batteries/power banks warm (inner pocket) — cold drains them fast.",
+              "If you end up using public transport: check airport bus / shuttle options (seasonal + timetable-based)."
+            ],
             links: [
-                { label: "Rovaniemi Map", href: "https://www.google.com/maps?api=1&query=Rovaniemi" },
-                { label: "Late Night Food (Scanburger)", href: "https://scanburger.fi/scanburger-erottaja-rovaniemi/" }
+              { label: "Rovaniemi map", href: "https://www.google.com/maps/search/?api=1&query=Rovaniemi" },
+              { label: "RVN airport transport info", href: "https://www.finavia.fi/en/airports/rovaniemi/parking-access/public-transport" },
+              { label: "Airport bus info", href: "https://www.airportbus.fi/" },
+              { label: "Visit Rovaniemi: getting around", href: "https://www.visitrovaniemi.fi/plan/getting-around/" },
+              { label: "Arktikum (museum)", href: "https://arktikum.fi/en/" }
             ]
           }
         ]
@@ -571,7 +589,7 @@
             details: ["Coach 1 (Upper), Seats 67-68", "Order: F6010236161049"],
             booking: { ticketLinks: [{ label: "View Ticket", href: "https://www.vr.fi/en/train-tickets" }] },
             links: [
-                { label: "Station Map", href: "https://www.google.com/maps?api=1&query=Rovaniemi+Railway+Station" },
+                { label: "Station Map", href: "https://www.google.com/maps/search/?api=1&query=Rovaniemi+Railway+Station" },
                 { label: "Live Departures", href: "https://www.vr.fi/en/railway-stations-and-routes/rovaniemi" }
             ]
           },
@@ -582,7 +600,7 @@
             arrivalTime: { local: "08:21", tz: "Europe/Rovaniemi" },
             details: ["Coach 43 (Upper), Seats 99-100"],
             links: [
-                { label: "Kemi Station Map", href: "https://www.google.com/maps?api=1&query=Kemi+Railway+Station" },
+                { label: "Kemi Station Map", href: "https://www.google.com/maps/search/?api=1&query=Kemi+Railway+Station" },
                 { label: "Live Departures", href: "https://www.vr.fi/en/railway-stations-and-routes/kemi" }
             ]
           },
@@ -590,10 +608,17 @@
             type: "task",
             title: "Tornio Arrival & Shopping",
             time: { local: "08:30", tz: "Europe/Rovaniemi" },
-            details: ["Arrive at Tornio-Itäinen (Platform only). Head to Tornio/Haparanda center for shopping before heading north.", "Rec: Prisma Tornio or K-Citymarket. Try 'Lörtsy' & Reindeer meat."],
+            details: [
+              "Arrive at Tornio-Itäinen (platform only). Head to Tornio/Haparanda centre for a proper supermarket shop before heading north.",
+              "Go-to big shops: Prisma (huge) or K-Citymarket (also huge).",
+              "Local flavour shopping list (easy wins): karjalanpiirakka (Karelian pies), rye bread, rieska (flatbread), cured salmon, leipäjuusto (squeaky cheese), cloudberry jam (if you see it), cinnamon buns (korvapuusti).",
+              "Cold-weather tip: carry fragile stuff (eggs/chocolate/batteries) inside a backpack or insulated tote if you’ll be waiting outdoors."
+            ],
             links: [
-                { label: "Tornio-Itäinen Map", href: "https://www.google.com/maps?api=1&query=Tornio-It%C3%A4inen" },
-                { label: "Prisma Map", href: "https://www.google.com/maps?api=1&query=Prisma+Tornio" }
+              { label: "Tornio-Itäinen map", href: "https://www.google.com/maps/search/?api=1&query=Tornio-It%C3%A4inen" },
+              { label: "Prisma Tornio map", href: "https://www.google.com/maps/search/?api=1&query=Prisma+Tornio" },
+              { label: "K-Citymarket Tornio map", href: "https://www.google.com/maps/search/?api=1&query=K-Citymarket+Tornio" },
+              { label: "Tornio centre map", href: "https://www.google.com/maps/search/?api=1&query=Tornio+Finland+centre" }
             ]
           },
           {
@@ -701,7 +726,16 @@
           {
             type: "local_transport",
             title: "Transfer to Kemi Station",
-            details: ["Aim for 09:36 train."]
+            details: [
+              "No-car reality: this is typically taxi + buffer time (cold + luggage).",
+              "If you get spare time in Kemi: SnowCastle / SnowExperience is the headline attraction (seasonal).",
+              "Golden tip: station-area services can be limited early; keep snacks + water handy."
+            ],
+            links: [
+              { label: "Kemi Station map", href: "https://www.google.com/maps/search/?api=1&query=Kemi+Railway+Station" },
+              { label: "SnowCastle Kemi info", href: "https://experience365.fi/snowcastle-of-kemi/" },
+              { label: "SnowCastle Winter Park", href: "https://experience365.fi/snowcastle-winter-park/" }
+            ]
           },
           {
             type: "train",
@@ -710,7 +744,7 @@
             arrivalTime: { local: "10:59", tz: "Europe/Rovaniemi" },
             details: ["Coach 57 (Upper), Seats 73-74"],
             links: [
-                { label: "Station Map", href: "https://www.google.com/maps?api=1&query=Kemi+Railway+Station" }
+                { label: "Station Map", href: "https://www.google.com/maps/search/?api=1&query=Kemi+Railway+Station" }
             ]
           },
           {
@@ -720,7 +754,7 @@
             details: ["Avoid Santa Claus Village (Crowded). Try Arktikum Museum or Korundi for culture. Walk the Lumberjack's Candle Bridge."],
             links: [
                 { label: "Arktikum Info", href: "https://arktikum.fi/en/" },
-                { label: "City Map", href: "https://www.google.com/maps?api=1&query=Rovaniemi" }
+                { label: "City Map", href: "https://www.google.com/maps/search/?api=1&query=Rovaniemi" }
             ]
           },
           {
@@ -743,7 +777,7 @@
             time: { local: "22:30", tz: "Europe/Dublin" },
             details: ["DUB Airport -> Hilton Dublin Airport (Malahide Rd) for Key. Then back to Airport for Bus 726."],
             links: [
-                { label: "Hilton Map", href: "https://www.google.com/maps?api=1&query=Hilton+Dublin+Airport" },
+                { label: "Hilton Map", href: "https://www.google.com/maps/search/?api=1&query=Hilton+Dublin+Airport" },
                 { label: "Bus 726 Info", href: "https://www.dublincoach.ie/all-timetables/n7-service" }
             ]
           },
