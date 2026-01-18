@@ -187,6 +187,11 @@
         font-weight: 500;
     }
 
+    .fader-text-sub a {
+        color: var(--primary);
+        text-decoration: underline;
+    }
+
     /* === Day Nav === */
     /* Centered block logic */
     .day-buttons-container {
@@ -433,11 +438,6 @@
                       <div class="fader-text-sub" id="dash-sub">Connecting to satellites...</div>
                   </div>
               </div>
-              <div class="dash-links">
-                  <a id="aurora-forecast-link" href="#" target="_blank" class="action-chip">
-                      <i class="fa-solid fa-link"></i> Aurora forecast
-                  </a>
-              </div>
           </div>
       </div>
 
@@ -492,7 +492,7 @@
       default: 'fa-circle-dot'
     };
 
-    const AURORA_FORECAST_URL = "https://www.aurora-service.eu/aurora-forecast/?lat=65.845&lng=24.187&loc=1409%20Jokivarrentie%2C%20Tornio";
+    const AURORA_FORECAST_URL = "https://www.spaceweatherlive.com/en/auroral-activity/auroral-oval.html";
 
     /* === DATA & LOGIC === */
     const days = [
@@ -510,8 +510,8 @@
             time: { local: "03:00", tz: "Europe/Dublin" },
             details: ["Dublin Coach 726 (Green Bus). 24h Service.", "Departs: Newbridge Main St. Arrives: Zone 16.", "Allow 10-15 min to get from House (W12PK16) to stop."],
             links: [
-                { label: "726 Timetable", href: "https://www.dublincoach.ie/timetables-fares/726-dublin-airport-kildare-portlaoise" },
-                { label: "Stop Map", href: "https://www.google.com/maps/search/Dublin+Coach+Stop+Newbridge" }
+                { label: "726 Timetable", href: "https://www.dublincoach.ie/all-timetables/n7-service" },
+                { label: "Stop Map", href: "https://www.google.com/maps?api=1&query=Dublin+Coach+726+stop+Newbridge+Main+St+Riverbank" }
             ]
           },
           {
@@ -522,7 +522,7 @@
             flight: { airline: "Ryanair", bookingRef: "FULUMW" },
             details: ["Flight Number: Add from Pass", "Seats: Add from Pass"],
             links: [
-              { label: "DUB Live Flights", href: "https://www.dublinairport.com/flight-information/live-arrivals" }
+              { label: "DUB Live Flights", href: "https://www.dublinairport.com/flight-information/live-departures" }
             ]
           },
           {
@@ -531,8 +531,8 @@
             time: { local: "Layover", tz: "" },
             details: ["~10h Layover. Take Air-Rail Link to Birmingham Intl, then train to City Centre (New Street)."],
             links: [
-                { label: "B'ham Map", href: "https://www.google.com/maps/place/Birmingham" },
-                { label: "City Travel Info", href: "https://visitbirmingham.com/plan-your-visit/travel/" },
+                { label: "B'ham Map", href: "https://www.google.com/maps?api=1&query=Birmingham+Airport+(BHX)" },
+                { label: "City Travel Info", href: "https://www.birminghamairport.co.uk/transport-links/by-train/" },
                 { label: "Train Tickets", href: "https://www.thetrainline.com/" }
             ]
           },
@@ -550,8 +550,8 @@
             time: { local: "23:00", tz: "Europe/Rovaniemi" },
             details: ["Late night arrival. Most restaurants closed. 24h Sale supermarket or Shell gas station for supplies."],
             links: [
-                { label: "Rovaniemi Map", href: "https://www.google.com/maps/place/Rovaniemi" },
-                { label: "Late Night Food (Scanburger)", href: "https://www.scanburger.fi/" }
+                { label: "Rovaniemi Map", href: "https://www.google.com/maps?api=1&query=Rovaniemi" },
+                { label: "Late Night Food (Scanburger)", href: "https://scanburger.fi/scanburger-erottaja-rovaniemi/" }
             ]
           }
         ]
@@ -569,9 +569,9 @@
             time: { local: "05:15", tz: "Europe/Rovaniemi" },
             arrivalTime: { local: "06:35", tz: "Europe/Rovaniemi" },
             details: ["Coach 1 (Upper), Seats 67-68", "Order: F6010236161049"],
-            booking: { ticketLinks: [{ label: "View Ticket", href: "https://www.vr.fi" }] },
+            booking: { ticketLinks: [{ label: "View Ticket", href: "https://www.vr.fi/en/train-tickets" }] },
             links: [
-                { label: "Station Map", href: "https://www.google.com/maps/search/Rovaniemi+Railway+Station" },
+                { label: "Station Map", href: "https://www.google.com/maps?api=1&query=Rovaniemi+Railway+Station" },
                 { label: "Live Departures", href: "https://www.vr.fi/en/railway-stations-and-routes/rovaniemi" }
             ]
           },
@@ -582,7 +582,7 @@
             arrivalTime: { local: "08:21", tz: "Europe/Rovaniemi" },
             details: ["Coach 43 (Upper), Seats 99-100"],
             links: [
-                { label: "Kemi Station Map", href: "https://www.google.com/maps/search/Kemi+Railway+Station" },
+                { label: "Kemi Station Map", href: "https://www.google.com/maps?api=1&query=Kemi+Railway+Station" },
                 { label: "Live Departures", href: "https://www.vr.fi/en/railway-stations-and-routes/kemi" }
             ]
           },
@@ -592,8 +592,8 @@
             time: { local: "08:30", tz: "Europe/Rovaniemi" },
             details: ["Arrive at Tornio-Itäinen (Platform only). Head to Tornio/Haparanda center for shopping before heading north.", "Rec: Prisma Tornio or K-Citymarket. Try 'Lörtsy' & Reindeer meat."],
             links: [
-                { label: "Tornio-Itäinen Map", href: "https://www.google.com/maps/place/Tornio-Itäinen" },
-                { label: "Prisma Map", href: "https://www.google.com/maps/search/Prisma+Tornio" }
+                { label: "Tornio-Itäinen Map", href: "https://www.google.com/maps?api=1&query=Tornio-It%C3%A4inen" },
+                { label: "Prisma Map", href: "https://www.google.com/maps?api=1&query=Prisma+Tornio" }
             ]
           },
           {
@@ -710,7 +710,7 @@
             arrivalTime: { local: "10:59", tz: "Europe/Rovaniemi" },
             details: ["Coach 57 (Upper), Seats 73-74"],
             links: [
-                { label: "Station Map", href: "https://www.google.com/maps/search/Kemi+Railway+Station" }
+                { label: "Station Map", href: "https://www.google.com/maps?api=1&query=Kemi+Railway+Station" }
             ]
           },
           {
@@ -719,8 +719,8 @@
             timeWindow: { start: "11:00", end: "15:00" },
             details: ["Avoid Santa Claus Village (Crowded). Try Arktikum Museum or Korundi for culture. Walk the Lumberjack's Candle Bridge."],
             links: [
-                { label: "Arktikum Info", href: "https://www.arktikum.fi/en/home.html" },
-                { label: "City Map", href: "https://www.google.com/maps/place/Rovaniemi" }
+                { label: "Arktikum Info", href: "https://arktikum.fi/en/" },
+                { label: "City Map", href: "https://www.google.com/maps?api=1&query=Rovaniemi" }
             ]
           },
           {
@@ -743,8 +743,8 @@
             time: { local: "22:30", tz: "Europe/Dublin" },
             details: ["DUB Airport -> Hilton Dublin Airport (Malahide Rd) for Key. Then back to Airport for Bus 726."],
             links: [
-                { label: "Hilton Map", href: "https://www.google.com/maps/place/Hilton+Dublin+Airport" },
-                { label: "Bus 726 Info", href: "https://www.dublincoach.ie/timetables-fares/726-dublin-airport-kildare-portlaoise" }
+                { label: "Hilton Map", href: "https://www.google.com/maps?api=1&query=Hilton+Dublin+Airport" },
+                { label: "Bus 726 Info", href: "https://www.dublincoach.ie/all-timetables/n7-service" }
             ]
           },
           {
@@ -789,12 +789,6 @@
     const modal = document.getElementById('modal-overlay');
     const btnCancel = document.getElementById('btn-cancel');
     const btnAdd = document.getElementById('btn-add');
-    const auroraForecastLink = document.getElementById("aurora-forecast-link");
-
-    if (auroraForecastLink) {
-        auroraForecastLink.href = AURORA_FORECAST_URL;
-    }
-
     const openModal = () => modal.classList.add('active');
     const closeModal = () => modal.classList.remove('active');
 
@@ -921,11 +915,11 @@
                 
                 if(typeof msgObj === 'object'){
                     mainText.textContent = msgObj.main;
-                    subText.textContent = msgObj.sub;
+                    subText.innerHTML = msgObj.sub || "";
                     mainText.className = `fader-text-main ${msgObj.cls || ''}`;
                 } else {
                     mainText.textContent = msgObj;
-                    subText.textContent = "";
+                    subText.innerHTML = "";
                     mainText.className = "fader-text-main";
                 }
 
@@ -987,7 +981,8 @@
                 chanceClass = "status-cold"; 
             }
 
-            msgs.push({ main: chanceRating, sub: "Viewing Conditions", cls: chanceClass });
+            const auroraLink = `<a href="${AURORA_FORECAST_URL}" target="_blank" rel="noopener">Auroral oval</a>`;
+            msgs.push({ main: chanceRating, sub: `Viewing Conditions · ${auroraLink}`, cls: chanceClass });
             
             // 2. TECH SPECS
             msgs.push({ 
@@ -1021,7 +1016,7 @@
             const m = document.getElementById("dash-main");
             const s = document.getElementById("dash-sub");
             m.textContent = first.main;
-            s.textContent = first.sub;
+            s.innerHTML = first.sub || "";
             m.className = `fader-text-main ${first.cls}`;
 
         } catch (e) { 
