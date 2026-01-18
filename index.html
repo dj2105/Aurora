@@ -242,9 +242,10 @@
     }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-    .day-header { margin-bottom: 24px; border-bottom: 1px solid var(--glass-border); padding-bottom: 16px; }
+    .day-header { margin-bottom: 24px; border-bottom: 1px solid var(--glass-border); padding-bottom: 16px; display: flex; flex-direction: column; gap: 8px; }
+    .day-header-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .day-header h2 { margin: 0; font-size: 28px; font-weight: 700; background: linear-gradient(to right, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .day-header p { margin: 6px 0 0; color: var(--accent); font-size: 15px; font-weight: 500; display: flex; align-items: center; gap: 6px; } /* Increased from 14px */
+    .day-header p { margin: 0; color: var(--accent); font-size: 15px; font-weight: 500; display: flex; align-items: center; gap: 6px; } /* Increased from 14px */
 
     .timeline { display: flex; flex-direction: column; gap: 20px; position: relative; }
     .timeline::before { content: ''; position: absolute; top: 10px; bottom: 10px; left: 20px; width: 2px; background: var(--glass-border); z-index: 0; }
@@ -276,25 +277,19 @@
     a.action-chip { text-decoration: none; background: rgba(56, 189, 248, 0.1); color: var(--primary); border: 1px solid rgba(56, 189, 248, 0.2); padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; } /* Increased from 11px */
 
     /* === ADD EVENT WIDGET === */
-    .add-event-container {
-        display: flex;
-        justify-content: center;
-        padding-bottom: 20px;
-    }
-
     .add-event-btn {
         background: var(--pink-light);
         border: 2px dashed var(--pink-dark);
         color: var(--pink-dark);
         font-family: 'Outfit', sans-serif;
         font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        padding: 12px 28px;
+        text-transform: lowercase;
+        letter-spacing: 0.5px;
+        padding: 8px 16px;
         border-radius: 8px;
         cursor: pointer;
         transition: transform 0.1s;
-        font-size: 15px; /* Increased from 14px */
+        font-size: 13px;
         box-shadow: 0 4px 15px rgba(190, 24, 93, 0.3);
     }
     
@@ -343,6 +338,8 @@
     }
 
     .modal-row { display: flex; flex-direction: column; gap: 6px; }
+    .modal-row.time-row { flex-direction: row; align-items: center; justify-content: flex-start; gap: 10px; }
+    .time-label { color: var(--pink-dark); font-weight: 700; font-family: 'Outfit', sans-serif; font-size: 13px; text-transform: lowercase; }
     
     .modal-input {
         background: rgba(255,255,255,0.6);
@@ -354,6 +351,8 @@
         font-size: 16px; /* Increased from 15px */
         outline: none;
     }
+
+    .dash-links { margin-top: 12px; }
     
     .modal-input::placeholder {
         color: rgba(190, 24, 93, 0.5);
@@ -434,6 +433,11 @@
                       <div class="fader-text-sub" id="dash-sub">Connecting to satellites...</div>
                   </div>
               </div>
+              <div class="dash-links">
+                  <a id="aurora-forecast-link" href="#" target="_blank" class="action-chip">
+                      <i class="fa-solid fa-link"></i> Aurora forecast
+                  </a>
+              </div>
           </div>
       </div>
 
@@ -449,22 +453,17 @@
       <section class="day-card" id="day-card" aria-live="polite"></section>
     </main>
 
-    <!-- Add Event Button -->
-    <div class="add-event-container">
-        <button id="btn-show-modal" class="add-event-btn">add event</button>
-    </div>
-
   </div>
 
   <!-- Add Event Modal Overlay -->
   <div id="modal-overlay" class="modal-overlay">
       <div class="modal-content">
+          <div class="modal-row time-row">
+              <span class="time-label">time</span>
+              <input type="time" class="modal-input" style="width: 120px;">
+          </div>
           <div class="modal-row">
               <input type="text" class="modal-input input-bold" placeholder="Title">
-          </div>
-          <div class="modal-row" style="flex-direction: row; justify-content: flex-end; align-items: center; gap: 8px;">
-              <span style="color: var(--pink-dark); font-weight: 700; font-family: 'Outfit', sans-serif; font-size: 13px;">TIME:</span>
-              <input type="time" class="modal-input" style="width: 110px;">
           </div>
           <div class="modal-row">
               <textarea class="modal-input" placeholder="What’s occurrin’?"></textarea>
@@ -492,6 +491,8 @@
       overnight: 'fa-bed',
       default: 'fa-circle-dot'
     };
+
+    const AURORA_FORECAST_URL = "https://www.aurora-service.eu/aurora-forecast/?lat=65.845&lng=24.187&loc=1409%20Jokivarrentie%2C%20Tornio";
 
     /* === DATA & LOGIC === */
     const days = [
@@ -604,14 +605,17 @@
             type: "checkin",
             title: "Check-in: Riverside Restplace",
             timeWindow: { start: "15:00", end: "18:00" },
-            place: { address: "1409 Jokivarrentie, 95520 Tornio", maps: [{label: "Open Maps", href: "https://google.com/maps"}] },
+            place: { address: "1409 Jokivarrentie, 95520 Tornio", maps: [{label: "Open Maps", href: "https://www.google.com/maps/search/?api=1&query=1409%20Jokivarrentie%2C%2095520%20Tornio"}] },
             details: ["Bring: Slippers (cold floors), Headlamps, Power banks (cold drains battery).", "Key in lockbox."]
           },
           {
             type: "aurora",
             title: "Aurora Watch",
             details: ["Check cloud cover hourly. Keep lights low."],
-            links: [{ label: "FMI Space Weather", href: "https://en.ilmatieteenlaitos.fi/auroras-and-space-weather" }]
+            links: [
+              { label: "Aurora Forecast (Jokivarrentie)", href: AURORA_FORECAST_URL },
+              { label: "FMI Space Weather", href: "https://en.ilmatieteenlaitos.fi/auroras-and-space-weather" }
+            ]
           }
         ]
       },
@@ -630,7 +634,10 @@
           {
             type: "aurora",
             title: "Aurora Watch",
-            links: [{ label: "FMI Space Weather", href: "https://en.ilmatieteenlaitos.fi/auroras-and-space-weather" }]
+            links: [
+              { label: "Aurora Forecast (Jokivarrentie)", href: AURORA_FORECAST_URL },
+              { label: "FMI Space Weather", href: "https://en.ilmatieteenlaitos.fi/auroras-and-space-weather" }
+            ]
           }
         ]
       },
@@ -649,7 +656,10 @@
           {
             type: "aurora",
             title: "Aurora Watch",
-            links: [{ label: "FMI Space Weather", href: "https://en.ilmatieteenlaitos.fi/auroras-and-space-weather" }]
+            links: [
+              { label: "Aurora Forecast (Jokivarrentie)", href: AURORA_FORECAST_URL },
+              { label: "FMI Space Weather", href: "https://en.ilmatieteenlaitos.fi/auroras-and-space-weather" }
+            ]
           }
         ]
       },
@@ -668,7 +678,10 @@
           {
             type: "aurora",
             title: "Final Aurora Watch",
-            links: [{ label: "FMI Space Weather", href: "https://en.ilmatieteenlaitos.fi/auroras-and-space-weather" }]
+            links: [
+              { label: "Aurora Forecast (Jokivarrentie)", href: AURORA_FORECAST_URL },
+              { label: "FMI Space Weather", href: "https://en.ilmatieteenlaitos.fi/auroras-and-space-weather" }
+            ]
           }
         ]
       },
@@ -773,6 +786,20 @@
     const dayButtonsEl = document.getElementById("day-buttons");
     const dayCardEl = document.getElementById("day-card");
     let activeDayIndex = 0;
+    const modal = document.getElementById('modal-overlay');
+    const btnCancel = document.getElementById('btn-cancel');
+    const btnAdd = document.getElementById('btn-add');
+    const auroraForecastLink = document.getElementById("aurora-forecast-link");
+
+    if (auroraForecastLink) {
+        auroraForecastLink.href = AURORA_FORECAST_URL;
+    }
+
+    const openModal = () => modal.classList.add('active');
+    const closeModal = () => modal.classList.remove('active');
+
+    btnCancel.onclick = closeModal;
+    btnAdd.onclick = closeModal;
 
     function renderButtons(){
       dayButtonsEl.innerHTML = "";
@@ -796,7 +823,10 @@
       
       const headerHtml = `
         <div class="day-header">
-          <h2>${fullDay}</h2>
+          <div class="day-header-top">
+            <h2>${fullDay}</h2>
+            <button id="btn-show-modal" class="add-event-btn" type="button">+event</button>
+          </div>
           <p><i class="fa-solid fa-location-dot"></i> ${d.baseLocation}</p>
         </div>
       `;
@@ -846,6 +876,10 @@
       }).join("");
 
       dayCardEl.innerHTML = headerHtml + `<div class="timeline">${eventsHtml}</div>`;
+      const btnShow = document.getElementById('btn-show-modal');
+      if (btnShow) {
+        btnShow.onclick = openModal;
+      }
     }
 
     /* === HUD LOGIC === */
@@ -1001,17 +1035,6 @@
     fetchWeather();
 
     // === ADD EVENT MODAL LOGIC ===
-    const modal = document.getElementById('modal-overlay');
-    const btnShow = document.getElementById('btn-show-modal');
-    const btnCancel = document.getElementById('btn-cancel');
-    const btnAdd = document.getElementById('btn-add');
-
-    btnShow.onclick = () => modal.classList.add('active');
-    
-    const closeModal = () => modal.classList.remove('active');
-    btnCancel.onclick = closeModal;
-    btnAdd.onclick = closeModal;
-    
     // Close on click outside
     modal.onclick = (e) => {
         if (e.target === modal) closeModal();
@@ -1020,5 +1043,3 @@
   </script>
 </body>
 </html>
-
-
