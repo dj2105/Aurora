@@ -1,89 +1,1024 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <base href="/Aurora/" />
-    <title>Aurora Trip Reference</title>
-    <meta name="theme-color" content="#000000" />
-    <meta name="google-maps-key" content="" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
-    <link rel="manifest" href="manifest.json" />
-    <link rel="stylesheet" href="styles.css" />
-    <link rel="stylesheet" href="print.css" media="print" />
-  </head>
-  <body>
-    <div class="trip-hud" id="trip-hud" data-lat="65.845" data-lon="24.187">
-      <section class="trip-hud__status" aria-label="Trip status bar">
-        <div class="hud-times">
-          <div class="hud-time">
-            <span class="hud-label">Finland</span>
-            <span class="hud-value" data-role="time-fi">--:--</span>
-          </div>
-          <div class="hud-time">
-            <span class="hud-label">Ireland</span>
-            <span class="hud-value" data-role="time-ie">--:--</span>
-          </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <base href="/Aurora/" />
+  <title>Aurora Trip Reference</title>
+  <meta name="theme-color" content="#020617" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root{
+      /* Core Palette */
+      --bg: #020617;
+      --glass: rgba(30, 41, 59, 0.4);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --glass-highlight: rgba(255, 255, 255, 0.12);
+      
+      /* Text */
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      
+      /* Accents */
+      --primary: #38bdf8;
+      --secondary: #818cf8;
+      --good: #4ade80;
+      --bad: #f87171;
+      --neutral: #fbbf24;
+
+      /* Ticket / Event Theme */
+      --pink-light: #fce7f3;
+      --pink-dark: #be185d;
+
+      /* Layout */
+      --radius-lg: 24px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; }
+    
+    body {
+      margin: 0;
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(circle at 10% 0%, rgba(56, 189, 248, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 90% 10%, rgba(45, 212, 191, 0.1) 0%, transparent 40%),
+        radial-gradient(circle at 50% 110%, rgba(129, 140, 248, 0.15) 0%, transparent 50%);
+      background-attachment: fixed;
+      color: var(--text-main);
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 16px; /* Increased from 15px */
+      line-height: 1.5;
+    }
+
+    h1, h2, h3, .brand-font { font-family: 'Outfit', sans-serif; }
+
+    .wrap {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 16px 16px 100px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* === HUD === */
+    .hud {
+      background: var(--glass);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hud-top {
+      display: flex;
+      justify-content: space-between; /* Pushes gear to right, clocks to left */
+      align-items: flex-start;
+      padding: 16px 20px 12px;
+      background: rgba(0,0,0,0.2);
+      border-bottom: 1px solid var(--glass-border);
+    }
+
+    .clock-group {
+        display: flex;
+        gap: 24px; /* Gap between Ireland and Finland */
+    }
+
+    .hud-clock { display: flex; flex-direction: column; }
+    .hud-clock .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); font-weight: 600; margin-bottom: 2px; } /* Increased from 10px */
+    .hud-clock .value { font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 500; color: var(--text-main); line-height: 1.1; } /* Increased from 18px */
+
+    .gear-icon {
+        color: var(--text-muted);
+        opacity: 0.5;
+        font-size: 18px; /* Increased from 16px */
+        padding: 4px;
+    }
+
+    /* === UNIFIED DASHBOARD BOX === */
+    .dashboard-unified {
+        display: flex;
+        flex-direction: column;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        min-height: 160px; /* Fixed height to prevent layout jumps */
+        position: relative;
+        margin: 16px; /* Margin inside HUD */
+    }
+
+    .dash-header {
+        background: rgba(0,0,0,0.2);
+        padding: 10px 16px;
+        font-size: 12px; /* Increased from 11px */
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--primary);
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-bottom: 1px solid var(--glass-border);
+        justify-content: center; /* Center the title */
+    }
+
+    .dash-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 0 16px;
+        text-align: center;
+        background: radial-gradient(circle at center, rgba(56, 189, 248, 0.05), transparent 70%);
+    }
+
+    .status-fader {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Transition Classes */
+    .fader-content {
+        transition: opacity 1.0s ease-in-out; /* Slower transition (was 0.5s) */
+        opacity: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .fader-content.hidden { opacity: 0; }
+
+    .fader-text-main {
+        font-family: 'Outfit', sans-serif;
+        font-size: 32px;
+        font-weight: 800;
+        color: var(--text-main);
+        line-height: 1.1;
+        text-shadow: 0 0 20px rgba(0,0,0,0.5);
+    }
+    
+    .fader-text-main.status-good { color: var(--good); text-shadow: 0 0 25px rgba(74, 222, 128, 0.3); }
+    .fader-text-main.status-bad { color: var(--text-muted); opacity: 0.8; }
+    .fader-text-main.status-cold { color: var(--primary); }
+
+    .fader-text-sub {
+        font-size: 15px; /* Increased from 14px */
+        color: var(--text-muted);
+        margin-top: 8px;
+        font-weight: 500;
+    }
+
+    /* === Day Nav === */
+    /* Centered block logic */
+    .day-buttons-container {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .day-buttons { 
+        display: grid;
+        grid-template-columns: repeat(3, 1fr); /* Mobile: 3 cols, 2 rows */
+        gap: 10px;
+        width: 100%;
+        max-width: 400px; /* Constrain width on large screens */
+    }
+    
+    @media (min-width: 500px) {
+        .day-buttons { grid-template-columns: repeat(6, 1fr); max-width: 100%; }
+    }
+    
+    .day-btn {
+      appearance: none;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      color: var(--text-muted);
+      padding: 12px 6px; 
+      border-radius: var(--radius-md);
+      font-family: 'Outfit', sans-serif;
+      font-weight: 500;
+      font-size: 14px; /* Increased from 13px */
+      white-space: nowrap;
+      cursor: pointer;
+      display: flex; flex-direction: column; align-items: center;
+      transition: all 0.2s;
+    }
+    .day-btn span.dow { font-size: 12px; text-transform: uppercase; opacity: 0.7; margin-bottom: 3px; } /* Increased from 11px */
+    .day-btn span.date { font-size: 16px; font-weight: 700; } /* Increased from 15px */
+    
+    .day-btn[aria-selected="true"] {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: #0f172a; border-color: transparent;
+      box-shadow: 0 4px 12px rgba(56, 189, 248, 0.4);
+      transform: scale(1.02);
+    }
+
+    /* === Content Card === */
+    .day-card {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: 24px; 
+      animation: fadeIn 0.4s ease-out;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .day-header { margin-bottom: 24px; border-bottom: 1px solid var(--glass-border); padding-bottom: 16px; }
+    .day-header h2 { margin: 0; font-size: 28px; font-weight: 700; background: linear-gradient(to right, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .day-header p { margin: 6px 0 0; color: var(--accent); font-size: 15px; font-weight: 500; display: flex; align-items: center; gap: 6px; } /* Increased from 14px */
+
+    .timeline { display: flex; flex-direction: column; gap: 20px; position: relative; }
+    .timeline::before { content: ''; position: absolute; top: 10px; bottom: 10px; left: 20px; width: 2px; background: var(--glass-border); z-index: 0; }
+    .event { display: grid; grid-template-columns: 40px 1fr; gap: 16px; position: relative; z-index: 1; }
+    .event-left { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .event-icon-circle { width: 40px; height: 40px; border-radius: 50%; background: #0f172a; border: 2px solid var(--glass-border); display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--text-muted); box-shadow: 0 4px 10px rgba(0,0,0,0.3); } /* Increased size to 18px */
+    
+    .event[data-type="flight"] .event-icon-circle { color: var(--primary); border-color: rgba(56, 189, 248, 0.3); }
+    .event[data-type="aurora"] .event-icon-circle { color: var(--good); border-color: rgba(74, 222, 128, 0.3); background: rgba(74, 222, 128, 0.1); }
+    .event[data-type="train"] .event-icon-circle { color: #f472b6; }
+    .event[data-type="bus"] .event-icon-circle { color: #fbbf24; }
+
+    .event-time-pill { background: var(--glass-highlight); padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 700; font-family: 'Outfit', sans-serif; color: var(--text-main); text-align: center; min-width: 42px; line-height: 1.1; } /* Increased from 11px */
+    .event-time-pill span { display: block; font-size: 10px; color: var(--text-muted); font-weight: 400; margin-top: 1px; } /* Increased from 9px */
+
+    .event-card { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 16px; transition: background 0.2s; }
+    .event-card:active { background: rgba(255, 255, 255, 0.06); }
+    .event-title { margin: 0 0 6px; font-size: 17px; font-weight: 600; line-height: 1.3; color: var(--text-main); } /* Increased from 16px */
+    .event-meta { font-size: 14px; color: var(--text-muted); line-height: 1.5; margin-bottom: 10px; } /* Increased from 13px */
+    .meta-tag { display: inline-block; background: rgba(255,255,255,0.07); padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-right: 4px; margin-bottom: 4px; } /* Increased from 11px */
+    
+    details { margin-top: 10px; border-top: 1px solid var(--glass-border); padding-top: 10px; }
+    summary { list-style: none; cursor: pointer; font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--primary); display: flex; align-items: center; gap: 6px; } /* Increased from 11px */
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: '\f078'; font-family: "Font Awesome 6 Free"; font-weight: 900; font-size: 10px; }
+    details[open] summary::after { transform: rotate(180deg); }
+    .more-content { margin-top: 10px; font-size: 13px; color: var(--text-muted); display: flex; flex-direction: column; gap: 6px; } /* Increased from 12px */
+    .link-group { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+    a.action-chip { text-decoration: none; background: rgba(56, 189, 248, 0.1); color: var(--primary); border: 1px solid rgba(56, 189, 248, 0.2); padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; } /* Increased from 11px */
+
+    /* === ADD EVENT WIDGET === */
+    .add-event-container {
+        display: flex;
+        justify-content: center;
+        padding-bottom: 20px;
+    }
+
+    .add-event-btn {
+        background: var(--pink-light);
+        border: 2px dashed var(--pink-dark);
+        color: var(--pink-dark);
+        font-family: 'Outfit', sans-serif;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 12px 28px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: transform 0.1s;
+        font-size: 15px; /* Increased from 14px */
+        box-shadow: 0 4px 15px rgba(190, 24, 93, 0.3);
+    }
+    
+    .add-event-btn:active {
+        transform: scale(0.96);
+        background: #fbcfe8;
+    }
+
+    /* Modal Overlay */
+    .modal-overlay {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(2, 6, 23, 0.85);
+        backdrop-filter: blur(8px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+    
+    .modal-overlay.active {
+        opacity: 1;
+        pointer-events: all;
+    }
+
+    .modal-content {
+        background: var(--pink-light);
+        border: 2px dashed var(--pink-dark);
+        border-radius: 16px;
+        padding: 24px;
+        width: 85%;
+        max-width: 320px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        transform: translateY(20px);
+        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .modal-overlay.active .modal-content {
+        transform: translateY(0);
+    }
+
+    .modal-row { display: flex; flex-direction: column; gap: 6px; }
+    
+    .modal-input {
+        background: rgba(255,255,255,0.6);
+        border: 1px solid var(--pink-dark);
+        border-radius: 8px;
+        padding: 12px;
+        font-family: 'Inter', sans-serif;
+        color: var(--pink-dark);
+        font-size: 16px; /* Increased from 15px */
+        outline: none;
+    }
+    
+    .modal-input::placeholder {
+        color: rgba(190, 24, 93, 0.5);
+    }
+
+    .input-bold::placeholder { font-weight: 700; opacity: 0.6; }
+    .input-bold { font-weight: 700; }
+
+    textarea.modal-input {
+        resize: none;
+        height: 80px;
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 8px;
+    }
+
+    .modal-btn {
+        flex: 1;
+        padding: 12px;
+        border-radius: 8px;
+        font-family: 'Outfit', sans-serif;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 14px; /* Increased from 13px */
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s;
+    }
+
+    .btn-cancel {
+        background: transparent;
+        border: 1px solid var(--pink-dark);
+        color: var(--pink-dark);
+    }
+    
+    .btn-add {
+        background: var(--pink-dark);
+        color: var(--pink-light);
+    }
+    
+    .modal-btn:active { transform: scale(0.95); }
+
+  </style>
+</head>
+<body>
+
+  <div class="wrap">
+
+    <!-- HUD Section -->
+    <section class="hud" id="trip-hud" data-lat="65.845" data-lon="24.187">
+      <div class="hud-top">
+        <div class="clock-group">
+            <div class="hud-clock">
+                <span class="label">Ireland</span>
+                <span class="value" data-role="time-ie">--:--</span>
+            </div>
+            <div class="hud-clock">
+                <span class="label">Finland</span>
+                <span class="value" data-role="time-fi">--:--</span>
+            </div>
         </div>
-        <div class="hud-hero" aria-live="polite">
-          <div class="hud-hero__header">
-            <div>
-              <p class="hud-hero__label">Tonight in Tornio</p>
-            </div>
-          </div>
-          <div class="hud-hero__grid">
-            <div class="hud-hero__stat">
-              <p class="hud-hero__value" data-role="tonight-temp-low">--</p>
-              <p class="hud-hero__label-inline">Low</p>
-              <p class="hud-hero__meta" data-role="tonight-temp-low-time"></p>
-            </div>
-            <div class="hud-hero__stat">
-              <p class="hud-hero__value" data-role="tonight-temp-high">--</p>
-              <p class="hud-hero__label-inline">High</p>
-              <p class="hud-hero__meta" data-role="tonight-temp-high-time"></p>
-            </div>
-            <div class="hud-hero__stat">
-              <p class="hud-hero__value" data-role="tonight-cloud-avg">--</p>
-              <p class="hud-hero__label-inline">Cloud avg</p>
-              <p class="hud-hero__meta" data-role="tonight-cloud-avg-time"></p>
-            </div>
-            <div class="hud-hero__stat">
-              <p class="hud-hero__value" data-role="tonight-cloud-best">--</p>
-              <p class="hud-hero__label-inline">Cloud min</p>
-              <p class="hud-hero__meta" data-role="tonight-cloud-best-time"></p>
-            </div>
-            <div class="hud-hero__stat">
-              <p class="hud-hero__value" data-role="tonight-kp-max">--</p>
-              <p class="hud-hero__label-inline">KP</p>
-              <p class="hud-hero__meta" data-role="tonight-kp-max-time"></p>
-            </div>
-          </div>
+        
+        <div class="gear-icon">
+            <i class="fa-solid fa-gear"></i>
         </div>
-        <p class="hud-status" data-role="hud-status"></p>
-      </section>
-      <nav class="day-nav" aria-label="Trip days">
-        <div class="day-nav__scroll" id="timeline"></div>
-      </nav>
+      </div>
+
+      <!-- Unified Dashboard -->
+      <div class="dashboard-unified">
+          <div class="dash-header">1409 JOKIVARRENTIE</div>
+          <div class="dash-body">
+              <div class="status-fader">
+                  <div class="fader-content" id="fader-content">
+                      <div class="fader-text-main" id="dash-main">Loading...</div>
+                      <div class="fader-text-sub" id="dash-sub">Connecting to satellites...</div>
+                  </div>
+              </div>
+          </div>
+      </div>
+
+    </section>
+
+    <!-- Navigation (Centered Block) -->
+    <div class="day-buttons-container">
+        <div class="day-buttons" id="day-buttons" aria-label="Trip days"></div>
     </div>
 
-    <main class="page">
-      <section class="hero">
-        <div class="day-carousel" aria-label="Daily schedule carousel" id="day-carousel">
-          <div class="day-carousel__track" id="day-carousel-track"></div>
-        </div>
-      </section>
+    <!-- Main Content -->
+    <main class="content">
+      <section class="day-card" id="day-card" aria-live="polite"></section>
     </main>
 
-    <div class="install-toast" id="install-toast" role="status" aria-live="polite" hidden></div>
-    <div class="offline-toast" id="offline-toast" role="status" aria-live="polite" hidden></div>
-    <div class="update-toast" id="update-toast" role="status" aria-live="polite" hidden></div>
-    <div class="action-toast" id="action-toast" role="status" aria-live="polite" hidden></div>
+    <!-- Add Event Button -->
+    <div class="add-event-container">
+        <button id="btn-show-modal" class="add-event-btn">add event</button>
+    </div>
 
-    <script src="firebase-config.js"></script>
-    <script type="module" src="app.js"></script>
-    <script type="module" src="assets/js/trip-hud.js"></script>
-    <script type="module" src="assets/js/pwa.js"></script>
-  </body>
+  </div>
+
+  <!-- Add Event Modal Overlay -->
+  <div id="modal-overlay" class="modal-overlay">
+      <div class="modal-content">
+          <div class="modal-row">
+              <input type="text" class="modal-input input-bold" placeholder="Title">
+          </div>
+          <div class="modal-row" style="flex-direction: row; justify-content: flex-end; align-items: center; gap: 8px;">
+              <span style="color: var(--pink-dark); font-weight: 700; font-family: 'Outfit', sans-serif; font-size: 13px;">TIME:</span>
+              <input type="time" class="modal-input" style="width: 110px;">
+          </div>
+          <div class="modal-row">
+              <textarea class="modal-input" placeholder="What’s occurrin’?"></textarea>
+          </div>
+          <div class="modal-actions">
+              <button id="btn-cancel" class="modal-btn btn-cancel">cancel</button>
+              <button id="btn-add" class="modal-btn btn-add">add</button>
+          </div>
+      </div>
+  </div>
+
+  <script>
+    /* === ICONS MAPPING === */
+    const ICON_MAP = {
+      flight: 'fa-plane-departure',
+      layover: 'fa-mug-hot',
+      train: 'fa-train',
+      bus: 'fa-bus',
+      local_transport: 'fa-taxi',
+      checkin: 'fa-key',
+      checkout: 'fa-door-open',
+      task: 'fa-cart-shopping',
+      aurora: 'fa-star',
+      base_day: 'fa-house',
+      overnight: 'fa-bed',
+      default: 'fa-circle-dot'
+    };
+
+    /* === DATA & LOGIC === */
+    const days = [
+      {
+        id: "day1",
+        date: "2026-01-19",
+        shortLabel: "Mon 19",
+        dow: "Mon",
+        label: "Mon 19 Jan 2026",
+        baseLocation: "Travel day (Ireland → England → Finland)",
+        events: [
+          {
+            type: "bus",
+            title: "Bus: Newbridge → Dublin Airport",
+            time: { local: "03:00", tz: "Europe/Dublin" },
+            details: ["Dublin Coach 726 (Green Bus). 24h Service.", "Departs: Newbridge Main St. Arrives: Zone 16.", "Allow 10-15 min to get from House (W12PK16) to stop."],
+            links: [
+                { label: "726 Timetable", href: "https://www.dublincoach.ie/timetables-fares/726-dublin-airport-kildare-portlaoise" },
+                { label: "Stop Map", href: "https://www.google.com/maps/search/Dublin+Coach+Stop+Newbridge" }
+            ]
+          },
+          {
+            type: "flight",
+            title: "Fly: Dublin (DUB) → Birmingham (BHX)",
+            time: { local: "06:15", tz: "Europe/Dublin" },
+            arrivalTime: { local: "07:25", tz: "Europe/London" },
+            flight: { airline: "Ryanair", bookingRef: "FULUMW" },
+            details: ["Flight Number: Add from Pass", "Seats: Add from Pass"],
+            links: [
+              { label: "DUB Live Flights", href: "https://www.dublinairport.com/flight-information/live-arrivals" }
+            ]
+          },
+          {
+            type: "layover",
+            title: "Layover: Birmingham (BHX)",
+            time: { local: "Layover", tz: "" },
+            details: ["~10h Layover. Take Air-Rail Link to Birmingham Intl, then train to City Centre (New Street)."],
+            links: [
+                { label: "B'ham Map", href: "https://www.google.com/maps/place/Birmingham" },
+                { label: "City Travel Info", href: "https://visitbirmingham.com/plan-your-visit/travel/" },
+                { label: "Train Tickets", href: "https://www.thetrainline.com/" }
+            ]
+          },
+          {
+            type: "flight",
+            title: "Fly: Birmingham (BHX) → Rovaniemi (RVN)",
+            time: { local: "17:30", tz: "Europe/London" },
+            arrivalTime: { local: "22:50", tz: "Europe/Rovaniemi" },
+            flight: { airline: "Ryanair", bookingRef: "SQ23KL" },
+            details: ["Late arrival (23:00). Be prepared for cold immediately."]
+          },
+          {
+            type: "overnight",
+            title: "Arrival: Rovaniemi",
+            time: { local: "23:00", tz: "Europe/Rovaniemi" },
+            details: ["Late night arrival. Most restaurants closed. 24h Sale supermarket or Shell gas station for supplies."],
+            links: [
+                { label: "Rovaniemi Map", href: "https://www.google.com/maps/place/Rovaniemi" },
+                { label: "Late Night Food (Scanburger)", href: "https://www.scanburger.fi/" }
+            ]
+          }
+        ]
+      },
+      {
+        id: "day2",
+        date: "2026-01-20",
+        shortLabel: "Tue 20",
+        dow: "Tue",
+        baseLocation: "Rovaniemi → Tornio",
+        events: [
+          {
+            type: "train",
+            title: "Train: Rovaniemi → Kemi (IC 22)",
+            time: { local: "05:15", tz: "Europe/Rovaniemi" },
+            arrivalTime: { local: "06:35", tz: "Europe/Rovaniemi" },
+            details: ["Coach 1 (Upper), Seats 67-68", "Order: F6010236161049"],
+            booking: { ticketLinks: [{ label: "View Ticket", href: "https://www.vr.fi" }] },
+            links: [
+                { label: "Station Map", href: "https://www.google.com/maps/search/Rovaniemi+Railway+Station" },
+                { label: "Live Departures", href: "https://www.vr.fi/en/railway-stations-and-routes/rovaniemi" }
+            ]
+          },
+          {
+            type: "train",
+            title: "Train: Kemi → Tornio-Itäinen",
+            time: { local: "07:56", tz: "Europe/Rovaniemi" },
+            arrivalTime: { local: "08:21", tz: "Europe/Rovaniemi" },
+            details: ["Coach 43 (Upper), Seats 99-100"],
+            links: [
+                { label: "Kemi Station Map", href: "https://www.google.com/maps/search/Kemi+Railway+Station" },
+                { label: "Live Departures", href: "https://www.vr.fi/en/railway-stations-and-routes/kemi" }
+            ]
+          },
+          {
+            type: "task",
+            title: "Tornio Arrival & Shopping",
+            time: { local: "08:30", tz: "Europe/Rovaniemi" },
+            details: ["Arrive at Tornio-Itäinen (Platform only). Head to Tornio/Haparanda center for shopping before heading north.", "Rec: Prisma Tornio or K-Citymarket. Try 'Lörtsy' & Reindeer meat."],
+            links: [
+                { label: "Tornio-Itäinen Map", href: "https://www.google.com/maps/place/Tornio-Itäinen" },
+                { label: "Prisma Map", href: "https://www.google.com/maps/search/Prisma+Tornio" }
+            ]
+          },
+          {
+            type: "local_transport",
+            title: "Transfer to Riverside Restplace",
+            details: ["Taxi/Bus approx 40km North to 1409 Jokivarrentie."]
+          },
+          {
+            type: "checkin",
+            title: "Check-in: Riverside Restplace",
+            timeWindow: { start: "15:00", end: "18:00" },
+            place: { address: "1409 Jokivarrentie, 95520 Tornio", maps: [{label: "Open Maps", href: "https://google.com/maps"}] },
+            details: ["Bring: Slippers (cold floors), Headlamps, Power banks (cold drains battery).", "Key in lockbox."]
+          },
+          {
+            type: "aurora",
+            title: "Aurora Watch",
+            details: ["Check cloud cover hourly. Keep lights low."],
+            links: [{ label: "FMI Space Weather", href: "https://en.ilmatieteenlaitos.fi/auroras-and-space-weather" }]
+          }
+        ]
+      },
+      {
+        id: "day3",
+        date: "2026-01-21",
+        shortLabel: "Wed 21",
+        dow: "Wed",
+        baseLocation: "Tornio Base",
+        events: [
+          {
+            type: "base_day",
+            title: "Tornio Base Day",
+            details: ["Explore locally, sauna, rest."]
+          },
+          {
+            type: "aurora",
+            title: "Aurora Watch",
+            links: [{ label: "FMI Space Weather", href: "https://en.ilmatieteenlaitos.fi/auroras-and-space-weather" }]
+          }
+        ]
+      },
+      {
+        id: "day4",
+        date: "2026-01-22",
+        shortLabel: "Thu 22",
+        dow: "Thu",
+        baseLocation: "Tornio Base",
+        events: [
+          {
+            type: "base_day",
+            title: "Tornio Base Day",
+            details: ["Optional day trip or relax."]
+          },
+          {
+            type: "aurora",
+            title: "Aurora Watch",
+            links: [{ label: "FMI Space Weather", href: "https://en.ilmatieteenlaitos.fi/auroras-and-space-weather" }]
+          }
+        ]
+      },
+      {
+        id: "day5",
+        date: "2026-01-23",
+        shortLabel: "Fri 23",
+        dow: "Fri",
+        baseLocation: "Tornio Base",
+        events: [
+          {
+            type: "base_day",
+            title: "Final Full Day",
+            details: ["Packing, final supplies, final aurora hunt."]
+          },
+          {
+            type: "aurora",
+            title: "Final Aurora Watch",
+            links: [{ label: "FMI Space Weather", href: "https://en.ilmatieteenlaitos.fi/auroras-and-space-weather" }]
+          }
+        ]
+      },
+      {
+        id: "day6",
+        date: "2026-01-24",
+        shortLabel: "Sat 24",
+        dow: "Sat",
+        baseLocation: "Return Journey",
+        events: [
+          {
+            type: "checkout",
+            title: "Check-out",
+            timeWindow: { start: "08:00", end: "11:00" },
+            details: ["1409 Jokivarrentie"]
+          },
+          {
+            type: "local_transport",
+            title: "Transfer to Kemi Station",
+            details: ["Aim for 09:36 train."]
+          },
+          {
+            type: "train",
+            title: "Train: Kemi → Rovaniemi",
+            time: { local: "09:36", tz: "Europe/Rovaniemi" },
+            arrivalTime: { local: "10:59", tz: "Europe/Rovaniemi" },
+            details: ["Coach 57 (Upper), Seats 73-74"],
+            links: [
+                { label: "Station Map", href: "https://www.google.com/maps/search/Kemi+Railway+Station" }
+            ]
+          },
+          {
+            type: "layover",
+            title: "Rovaniemi Layover",
+            timeWindow: { start: "11:00", end: "15:00" },
+            details: ["Avoid Santa Claus Village (Crowded). Try Arktikum Museum or Korundi for culture. Walk the Lumberjack's Candle Bridge."],
+            links: [
+                { label: "Arktikum Info", href: "https://www.arktikum.fi/en/home.html" },
+                { label: "City Map", href: "https://www.google.com/maps/place/Rovaniemi" }
+            ]
+          },
+          {
+            type: "flight",
+            title: "Fly: Rovaniemi (RVN) → Birmingham",
+            time: { local: "15:55", tz: "Europe/Rovaniemi" },
+            arrivalTime: { local: "17:25", tz: "Europe/London" },
+            flight: { airline: "Ryanair", bookingRef: "SQ23KL" }
+          },
+          {
+            type: "flight",
+            title: "Fly: Birmingham → Dublin",
+            time: { local: "20:50", tz: "Europe/London" },
+            arrivalTime: { local: "21:50", tz: "Europe/Dublin" },
+            flight: { airline: "Ryanair", bookingRef: "FULUMW" }
+          },
+          {
+            type: "bus",
+            title: "Home Journey: Key Collection",
+            time: { local: "22:30", tz: "Europe/Dublin" },
+            details: ["DUB Airport -> Hilton Dublin Airport (Malahide Rd) for Key. Then back to Airport for Bus 726."],
+            links: [
+                { label: "Hilton Map", href: "https://www.google.com/maps/place/Hilton+Dublin+Airport" },
+                { label: "Bus 726 Info", href: "https://www.dublincoach.ie/timetables-fares/726-dublin-airport-kildare-portlaoise" }
+            ]
+          },
+          {
+            type: "bus",
+            title: "Bus: Airport -> Newbridge",
+            details: ["Dublin Coach 726 (Green Bus). Zone 16. 24h Service.", "Dest: Newbridge w12pk16"]
+          }
+        ]
+      }
+    ];
+
+    /* === UTILS === */
+    const TIME_ZONE = "Europe/Helsinki";
+    
+    function formatTimeWithZone(date, timeZone = TIME_ZONE){
+      const fmt = new Intl.DateTimeFormat("en-GB", { timeZone, hour: "2-digit", minute:"2-digit", hour12:false });
+      return fmt.format(date);
+    }
+    
+    function getFullDayName(dateStr) {
+        const d = new Date(dateStr);
+        return new Intl.DateTimeFormat("en-GB", { weekday: "long" }).format(d);
+    }
+
+    function timeLabelForEvent(ev){
+      if (ev.timeWindow) return { t: `${ev.timeWindow.start}`, sub: `to ${ev.timeWindow.end}` };
+      if (ev.time && ev.arrivalTime) return { t: ev.time.local, sub: `Arr ${ev.arrivalTime.local}` };
+      if (ev.time) return { t: ev.time.local, sub: ev.time.tz ? ev.time.tz.split('/')[1] : '' };
+      return { t: "", sub: "" };
+    }
+
+    // Helper to auto-link "Ryanair"
+    function linkifyRyanair(text) {
+        if (!text) return "";
+        return text.replace(/Ryanair/g, '<a href="https://www.ryanair.com" target="_blank" style="color:var(--primary);text-decoration:underline;">Ryanair</a>');
+    }
+
+    /* === RENDER === */
+    const dayButtonsEl = document.getElementById("day-buttons");
+    const dayCardEl = document.getElementById("day-card");
+    let activeDayIndex = 0;
+
+    function renderButtons(){
+      dayButtonsEl.innerHTML = "";
+      days.forEach((d, idx)=>{
+        const btn = document.createElement("button");
+        btn.className = "day-btn";
+        btn.setAttribute("aria-selected", idx === activeDayIndex);
+        btn.innerHTML = `<span class="dow">${d.dow}</span><span class="date">${d.shortLabel.split(' ')[1]}</span>`;
+        btn.onclick = () => {
+          activeDayIndex = idx;
+          renderButtons();
+          renderDay();
+        };
+        dayButtonsEl.appendChild(btn);
+      });
+    }
+
+    function renderDay(){
+      const d = days[activeDayIndex];
+      const fullDay = getFullDayName(d.date);
+      
+      const headerHtml = `
+        <div class="day-header">
+          <h2>${fullDay}</h2>
+          <p><i class="fa-solid fa-location-dot"></i> ${d.baseLocation}</p>
+        </div>
+      `;
+      const eventsHtml = (d.events || []).map(ev => {
+        const timeObj = timeLabelForEvent(ev);
+        const iconClass = ICON_MAP[ev.type] || ICON_MAP.default;
+        
+        let linksHtml = "";
+        const allLinks = [
+            ...(ev.booking?.ticketLinks || []),
+            ...(ev.links || []),
+            ...(ev.place?.maps || [])
+        ];
+        if(allLinks.length > 0) {
+            linksHtml = `<div class="link-group">
+                ${allLinks.map(l => `<a href="${l.href}" target="_blank" class="action-chip"><i class="fa-solid fa-link"></i> ${l.label || 'Link'}</a>`).join('')}
+            </div>`;
+        }
+        
+        let detailsHtml = "";
+        if (ev.details && ev.details.length) {
+           detailsHtml = ev.details.map(det => `<div class="meta-tag">${linkifyRyanair(det)}</div>`).join('');
+        }
+        if (ev.flight) {
+            const flightInfo = `${linkifyRyanair(ev.flight.airline)} · Ref: ${ev.flight.bookingRef}`;
+            detailsHtml += `<div class="meta-tag" style="background:rgba(56,189,248,0.15);color:var(--primary);">${flightInfo}</div>`;
+        }
+        
+        // Also linkify title
+        const linkedTitle = linkifyRyanair(ev.title);
+
+        return `
+          <div class="event" data-type="${ev.type}">
+            <div class="event-left">
+                <div class="event-icon-circle">
+                    <i class="fa-solid ${iconClass}"></i>
+                </div>
+                ${timeObj.t ? `<div class="event-time-pill">${timeObj.t} ${timeObj.sub ? `<span>${timeObj.sub}</span>` : ''}</div>` : ''}
+            </div>
+            <div class="event-card">
+                <h3 class="event-title">${linkedTitle}</h3>
+                <div class="event-meta">${detailsHtml}</div>
+                ${linksHtml ? `<div class="more-content">${linksHtml}</div>` : ''}
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      dayCardEl.innerHTML = headerHtml + `<div class="timeline">${eventsHtml}</div>`;
+    }
+
+    /* === HUD LOGIC === */
+    async function updateHud(){
+        const now = new Date();
+        document.querySelector("[data-role='time-fi']").textContent = formatTimeWithZone(now, "Europe/Helsinki");
+        document.querySelector("[data-role='time-ie']").textContent = formatTimeWithZone(now, "Europe/Dublin");
+    }
+    
+    // Initial Render
+    renderButtons();
+    renderDay();
+    updateHud();
+    setInterval(updateHud, 10000);
+
+    /* === LIVE WEATHER & ANIMATION LOGIC === */
+    const TIME_ZONE_API = "Europe/Helsinki";
+    const locationCoords = { lat: 65.845, lon: 24.187 };
+
+    let stateMachine = {
+        messages: ["Loading...", "Connecting..."],
+        mainClass: "",
+        index: 0
+    };
+
+    function startFader() {
+        const container = document.getElementById("fader-content");
+        const mainText = document.getElementById("dash-main");
+        const subText = document.getElementById("dash-sub");
+
+        setInterval(() => {
+            // 1. Fade Out
+            container.classList.add("hidden");
+
+            // 2. Wait for transition to finish (1000ms), then update text
+            setTimeout(() => {
+                stateMachine.index = (stateMachine.index + 1) % stateMachine.messages.length;
+                const msgObj = stateMachine.messages[stateMachine.index];
+                
+                if(typeof msgObj === 'object'){
+                    mainText.textContent = msgObj.main;
+                    subText.textContent = msgObj.sub;
+                    mainText.className = `fader-text-main ${msgObj.cls || ''}`;
+                } else {
+                    mainText.textContent = msgObj;
+                    subText.textContent = "";
+                    mainText.className = "fader-text-main";
+                }
+
+                // 3. Fade In
+                container.classList.remove("hidden");
+            }, 1000); // matches CSS transition time
+
+        }, 6000); // 5s visible + 1s fade logic
+    }
+
+    async function fetchWeather() {
+        try {
+            const [weatherResp, kpResp] = await Promise.all([
+                fetch(`https://api.open-meteo.com/v1/forecast?latitude=${locationCoords.lat}&longitude=${locationCoords.lon}&current=apparent_temperature,cloud_cover&hourly=apparent_temperature&timezone=Europe%2FHelsinki&forecast_days=2`),
+                fetch("https://services.swpc.noaa.gov/products/noaa-planetary-k-index-forecast.json")
+            ]);
+
+            if(!weatherResp.ok || !kpResp.ok) throw new Error("API Failure");
+
+            const weatherData = await weatherResp.json();
+            const kpData = await kpResp.json();
+
+            // === Data Processing ===
+            const currentFeel = Math.round(weatherData.current.apparent_temperature);
+            const currentCloud = weatherData.current.cloud_cover;
+            
+            // Forecast logic
+            const now = new Date();
+            const localHourStr = new Intl.DateTimeFormat("en-GB", { timeZone: TIME_ZONE_API, hour: "numeric", hour12: false }).format(now);
+            const currentHourIndex = parseInt(localHourStr, 10);
+            const forecastTemps = weatherData.hourly.apparent_temperature.slice(currentHourIndex, currentHourIndex + 6);
+            
+            // KP Logic
+            let currentKp = 0;
+            if (kpData.length > 1) {
+                 const lastEntry = kpData[kpData.length - 1];
+                 currentKp = parseFloat(lastEntry[1]); 
+            }
+
+            // === Logic Engine: "Chances" ===
+            // This builds the rotation messages for the Main Dashboard
+            const msgs = [];
+            
+            // 1. CHANCE RATING (The Headline)
+            let chanceRating = "MODERATE";
+            let chanceClass = "";
+            
+            if (currentCloud > 85) {
+                chanceRating = "POOR (CLOUDY)";
+                chanceClass = "status-bad";
+            } else if (currentCloud < 30 && currentKp > 6) { 
+                chanceRating = "EXCELLENT";
+                chanceClass = "status-good";
+            } else if (currentCloud < 50 && currentKp >= 2) {
+                chanceRating = "GOOD";
+                chanceClass = "status-good";
+            } else {
+                chanceRating = "MODERATE";
+                chanceClass = "status-cold"; 
+            }
+
+            msgs.push({ main: chanceRating, sub: "Viewing Conditions", cls: chanceClass });
+            
+            // 2. TECH SPECS
+            msgs.push({ 
+                main: `KP ${currentKp} / Sky ${currentCloud}%`, 
+                sub: "Live Activity & Cloud Cover", 
+                cls: "" 
+            });
+
+            // 3. TEMP
+            msgs.push({ 
+                main: `Real Feel ${currentFeel}°`, 
+                sub: "Dress warmly for -20° conditions", 
+                cls: "status-cold" 
+            });
+
+            // 4. TREND
+            const tNow = forecastTemps[0];
+            const t2h = forecastTemps[2];
+            let trend = "Steady temps";
+            if ((tNow - t2h) > 2) trend = `Dropping to ${t2h}° soon`;
+            else if ((t2h - tNow) > 2) trend = `Rising to ${t2h}° soon`;
+            
+            msgs.push({ main: trend, sub: "Forecast next 2 hours", cls: "" });
+
+            // Update State
+            stateMachine.messages = msgs;
+            stateMachine.index = -1; // reset for next tick
+            
+            // Force immediate update of first frame
+            const first = msgs[0];
+            const m = document.getElementById("dash-main");
+            const s = document.getElementById("dash-sub");
+            m.textContent = first.main;
+            s.textContent = first.sub;
+            m.className = `fader-text-main ${first.cls}`;
+
+        } catch (e) { 
+            console.log("Weather fetch error", e);
+            stateMachine.messages = [{ main: "Offline", sub: "Check connection" }];
+        }
+    }
+    
+    // Init
+    startFader();
+    fetchWeather();
+
+    // === ADD EVENT MODAL LOGIC ===
+    const modal = document.getElementById('modal-overlay');
+    const btnShow = document.getElementById('btn-show-modal');
+    const btnCancel = document.getElementById('btn-cancel');
+    const btnAdd = document.getElementById('btn-add');
+
+    btnShow.onclick = () => modal.classList.add('active');
+    
+    const closeModal = () => modal.classList.remove('active');
+    btnCancel.onclick = closeModal;
+    btnAdd.onclick = closeModal;
+    
+    // Close on click outside
+    modal.onclick = (e) => {
+        if (e.target === modal) closeModal();
+    };
+
+  </script>
+</body>
 </html>
+
+
